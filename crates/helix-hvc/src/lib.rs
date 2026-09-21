@@ -671,7 +671,12 @@ mod tests {
     fn plc_without_history_returns_silence() {
         let mut decoder = HvcDecoder::default();
         let concealed = decoder.conceal_loss(0).expect("conceal loss");
-        assert!(concealed.samples().iter().all(|sample| sample.abs() < 1.0e-9));
+        assert!(
+            concealed
+                .samples()
+                .iter()
+                .all(|sample| sample.abs() < 1.0e-9)
+        );
     }
 
     #[test]
@@ -690,7 +695,12 @@ mod tests {
                 .expect("conceal loss");
             let concealed_rms = rms(concealed.samples());
             assert!(concealed.samples().iter().all(|sample| sample.is_finite()));
-            assert!(concealed.samples().iter().all(|sample| sample.abs() <= OUTPUT_HEADROOM));
+            assert!(
+                concealed
+                    .samples()
+                    .iter()
+                    .all(|sample| sample.abs() <= OUTPUT_HEADROOM)
+            );
             assert!(concealed_rms <= previous_rms + 1.0e-6);
             previous_rms = concealed_rms;
         }
