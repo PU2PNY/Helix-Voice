@@ -326,8 +326,7 @@ fn band_log_energies(frame: &[f32], floor: f32) -> [f32; 8] {
             let window_phase =
                 2.0 * core::f32::consts::PI * index as f32 / (HVC_FRAME_SAMPLES - 1) as f32;
             let window = 0.54 - 0.46 * window_phase.cos();
-            let angle =
-                2.0 * core::f32::consts::PI * bin as f32 * index as f32 / frame_len;
+            let angle = 2.0 * core::f32::consts::PI * bin as f32 * index as f32 / frame_len;
             let weighted = *sample * window;
             real += weighted * angle.cos();
             imag -= weighted * angle.sin();
