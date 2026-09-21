@@ -16,6 +16,7 @@ const MAX_PITCH_LAG: usize = 114;
 const REFLECTION_LIMIT: f32 = 0.95;
 const VOICED_CORRELATION_THRESHOLD: f32 = 0.38;
 const VOICED_RMS_THRESHOLD: f32 = 0.003;
+const OUTPUT_HEADROOM: f32 = 0.98;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HvcError {
@@ -444,9 +445,20 @@ fn normalize_rms(samples: &mut [f32], target_rms: f32) {
         return;
     }
 
-    let gain = (target_rms / current).clamp(0.05, 20.0);
+    let peak = samples
+        .iter()
+        .map(|sample| sample.abs())
+        .fold(0.0_f32, f32::max);
+    let desired_gain = (target_rms / current).clamp(0.05, 20.0);
+    let peak_safe_gain = if peak > 1.0e-9 {
+        OUTPUT_HEADROOM / peak
+    } else {
+        desired_gain
+    };
+    let gain = desired_gain.min(peak_safe_gain).max(0.0);
+
     for sample in samples {
-        *sample = (*sample * gain).clamp(-1.0, 1.0);
+        *sample = (*sample * gain).clamp(-OUTPUT_HEADROOM, OUTPUT_HEADROOM);
     }
 }
 
@@ -540,7 +552,10 @@ mod tests {
 
         assert_eq!(decoded.samples().len(), HVC_FRAME_SAMPLES);
         assert!(decoded.samples().iter().all(|sample| sample.is_finite()));
-        assert!(decoded.samples().iter().all(|sample| sample.abs() <= 1.0));
+        assert!(decoded
+            .samples()
+            .iter()
+            .all(|sample| sample.abs() <= OUTPUT_HEADROOM));
         assert!(rms(decoded.samples()) > 0.001);
     }
 
@@ -599,7 +614,10 @@ mod tests {
                 .expect("decode long stream");
 
             assert!(decoded.samples().iter().all(|sample| sample.is_finite()));
-            assert!(decoded.samples().iter().all(|sample| sample.abs() <= 1.0));
+            assert!(decoded
+                .samples()
+                .iter()
+                .all(|sample| sample.abs() <= OUTPUT_HEADROOM));
         }
     }
 
