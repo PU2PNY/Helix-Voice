@@ -101,3 +101,5 @@ No statement that HVC v0 is better than AMBE or another codec is permitted until
 ## 8. Evolution rule
 
 Any future HVC bitstream change must increment the bitstream version or define an explicitly backward-compatible extension. Test vectors must be generated from Helix-owned or redistributable synthetic material.
+
+Canonical v0 vectors are published in `HVC_TEST_VECTORS.md`.

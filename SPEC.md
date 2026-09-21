@@ -78,4 +78,8 @@ A protocol adapter must not pretend a codec exists when no legal implementation/
 
 HVC is a separate research track.
 
-No HVC bitstream has been standardized yet. No compatibility claim should be made until a published specification, encoder, decoder and independent test vectors exist.
+An experimental HVC v0 bitstream is now defined in `HVC_SPEC.md` and implemented by `helix-hvc`. It is a research format, not a standardized or production compatibility contract.
+
+Canonical synthetic vectors live in `HVC_TEST_VECTORS.md`.
+
+No interoperability claim should be made until a second independent implementation consumes the published specification/vectors successfully. No quality claim should be made until objective and level-matched listening evidence exists.

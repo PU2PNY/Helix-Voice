@@ -21,8 +21,12 @@ Status permitidos: PASS / FAIL / PARCIAL / PENDENTE.
 | T-DSP-002 | DSP-003 | `agc_does_not_raise_digital_silence` | silêncio permanece zero, gain 1.0 | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
 | T-DSP-003 | DSP-001/003/004 | `chain_processes_fixed_frame` | cadeia produz RMS > 0 e pico <= 1 | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
 | T-XLX-001 | XLX-001 | `integration_is_disabled_by_default` | modo padrão Disabled | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
+| T-HVC-001 | HVC-002/004 | HVC encode→packet→decode + CRC + bitrate + pitch | caminho v0 funcional e limitado | passou no Rust CI | SW | ubuntu-latest | a640072 | PASS |
+| T-HVC-002 | HVC-002/004 | `silence_has_stable_reference_vector` | vetor canônico permanece bit-exato | passou | SW | ubuntu-latest | a640072 | PASS |
 
-Evidência CI: GitHub Actions **Rust CI**, run `35601721908`, conclusão `success`.
+Evidência CI da baseline original: GitHub Actions **Rust CI**, run `35601721908`, conclusão `success`.
+
+Evidência CI HVC v0: GitHub Actions **Rust CI**, run `35615775362`, conclusão `success` em format, clippy e tests.
 
 ## Testes de comportamento ainda necessários
 
@@ -45,7 +49,10 @@ Evidência CI: GitHub Actions **Rust CI**, run `35601721908`, conclusão `succes
 | T-PNY-002 | PNY-003 | estados UI refletem backend real | HW | PENDENTE |
 | T-PNY-003 | PNY-005 | RF real | HW | PENDENTE |
 | T-SEC-001 | SEC-005 | fuzzing de parsers | SW | PENDENTE |
-| T-HVC-001 | HVC-002 | encode/decode + vetores + implementação independente | SW/HW | PENDENTE |
+| T-HVC-003 | HVC-002 | segunda implementação independente interpreta os vetores/bitstream v0 | SW | PENDENTE |
+| T-HVC-004 | HVC-005 / TEST-004 | fala real + métricas + A/B/ABX level-matched | SW + HW | PENDENTE |
+| T-HVC-005 | HVC-005 / PERF-001 | CPU/RSS/latência encode/decode no alvo | ENV/HW | PENDENTE |
+| T-HVC-006 | HVC-005 | perda de pacote/FEC/PLC e degradação controlada | SW + ENV/HW | PENDENTE |
 
 ## Regra
 

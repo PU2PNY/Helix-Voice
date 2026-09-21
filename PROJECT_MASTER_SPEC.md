@@ -1,7 +1,7 @@
 # PROJECT_MASTER_SPEC — Helix Voice
 
 Status: **fonte canônica de requisitos**
-Projeto: **Helix Voice Engine (HVE)** e pesquisa futura **Helix Voice Codec (HVC)**
+Projeto: **Helix Voice Engine (HVE)** e pesquisa experimental **Helix Voice Codec (HVC)**
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Construir um motor independente de voz digital, DSP e transcodificação em temp
 - integração segura e reversível com XLX/XLXD;
 - integração opcional com PU2PNY-OS;
 - arquitetura de adapters para codecs/protocolos;
-- pesquisa futura de um codec próprio HVC, separada do caminho de interoperabilidade legado.
+- pesquisa e implementação experimental de um codec próprio HVC, separada do caminho de interoperabilidade legado.
 
 ## 2. Limite de propriedade intelectual
 
@@ -230,17 +230,33 @@ Quando o pipeline atingir áudio real, incluir A/B ou ABX level-matched com mate
 ### HVC-001 — Linha de pesquisa separada
 HVC é separado do motor de interoperabilidade.
 
-### HVC-002 — Sem bitstream definido ainda
-Nenhuma compatibilidade HVC deve ser alegada antes de:
-- especificação publicada;
-- bitstream versionado;
-- encoder;
-- decoder;
-- vetores de teste próprios/redistribuíveis;
-- implementação independente interoperável.
+### HVC-002 — Bitstream experimental versionado
+O HVC v0 experimental deve possuir especificação publicada no próprio repositório, versão explícita, encoder, decoder e vetores de teste sintéticos próprios/redistribuíveis.
+
+Existência de encoder/decoder da implementação principal não basta para declarar interoperabilidade. Compatibilidade HVC só pode ser alegada após uma segunda implementação independente interpretar os mesmos vetores/bitstream.
 
 ### HVC-003 — Design próprio
-Qualquer HVC futuro deve possuir estrutura e algoritmos próprios e não ser apresentado como clone bit-a-bit de codec proprietário.
+HVC deve possuir estrutura, framing, parâmetros e implementação próprios e não pode ser apresentado como clone bit-a-bit de codec proprietário.
+
+### HVC-004 — Operating point v0
+O HVC v0 de pesquisa usa:
+- PCM mono a 8 kHz;
+- frames de 20 ms / 160 amostras;
+- pacote fixo de 12 bytes;
+- taxa de payload de 4.800 bit/s;
+- CRC-8;
+- análise de energia, pitch/voicing e oito coeficientes de reflexão quantizados.
+
+Mudança incompatível no bitstream exige nova versão.
+
+### HVC-005 — Gate de qualidade
+HVC v0 é protótipo SW. Não pode ser descrito como melhor que AMBE, Codec2, Opus ou qualquer outro codec sem:
+- corpus legalmente utilizável;
+- comparação com níveis casados;
+- métricas objetivas adequadas;
+- testes auditivos A/B ou ABX;
+- CPU/latência/RSS medidos;
+- teste em ambiente/hardware alvo quando aplicável.
 
 ## 13. Release
 

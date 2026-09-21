@@ -4,8 +4,8 @@
 
 O objetivo é construir um motor **modular, rápido, leve, auditável e desenvolvido do zero**, capaz de oferecer níveis de áudio consistentes, baixa latência e uma arquitetura moderna para integração com sistemas como **XLX/XLXD** e **PU2PNY-OS**.
 
-> **Status:** pesquisa e desenvolvimento inicial.  
-> O projeto ainda não deve ser considerado um codec ou transcoder pronto para produção.
+> **Status:** pesquisa e desenvolvimento inicial. O HVC v0 já possui encoder, bitstream experimental próprio e decoder com evidência SW.  
+> O projeto ainda não deve ser considerado um codec ou transcoder pronto para produção e não há alegação de superioridade sobre codecs existentes.
 
 ---
 
@@ -117,6 +117,7 @@ O DSP não deve depender de D-STAR, DMR, YSF ou qualquer outro protocolo especí
 helix-voice/
 ├── helix-core
 ├── helix-dsp
+├── helix-hvc       # HVC v0 experimental
 ├── helix-codecs
 ├── helix-protocols
 ├── helix-xlx
@@ -229,19 +230,20 @@ A meta é evitar alocações de memória no caminho crítico de áudio sempre qu
 
 ## Codec Helix
 
-Um futuro **Helix Voice Codec (HVC)** poderá ser pesquisado separadamente do motor de transcodificação.
+O **Helix Voice Codec (HVC) v0** existe agora como protótipo experimental separado do motor de transcodificação.
 
-Esse eventual codec deverá:
+O v0 atual possui:
+- especificação própria em `HVC_SPEC.md`;
+- 8 kHz mono / frames de 20 ms;
+- pacote HVC próprio de 12 bytes / 4.800 bit/s de payload;
+- encoder e decoder em Rust;
+- CRC-8 e validação de pacote;
+- vetor sintético canônico em `HVC_TEST_VECTORS.md`;
+- testes automatizados no workspace.
 
-- ser desenvolvido independentemente;
-- possuir especificação própria;
-- utilizar bitstream próprio;
-- ter parâmetros e algoritmos próprios;
-- ser mensurável por testes objetivos;
-- não depender internamente de AMBE;
-- não ser apresentado como substituto compatível bit-a-bit de um codec proprietário.
+Isso **não** significa que HVC já tenha qualidade superior a AMBE, Codec2, Opus ou outro codec. Essa comparação exige fala real, métricas, testes auditivos level-matched, medições de CPU/latência e validação em hardware.
 
-Isso significa que equipamentos legados não passam automaticamente a entender HVC.
+HVC não é compatível bit-a-bit com AMBE. Equipamentos legados não passam automaticamente a entender HVC.
 
 A compatibilidade com rádios existentes dependerá das capacidades reais de cada protocolo, rádio, gateway e codec utilizado.
 
@@ -441,7 +443,8 @@ Informações sobre produtos e tecnologia AMBE devem ser consultadas diretamente
 - [ ] adapter XLXD experimental;
 - [ ] integração de laboratório com XLX026;
 - [ ] integração experimental com PU2PNY-OS;
-- [ ] pesquisa separada do Helix Voice Codec.
+- [x] protótipo separado Helix Voice Codec v0 (SW);
+- [ ] validar qualidade, robustez e interoperabilidade independente do HVC.
 
 ---
 

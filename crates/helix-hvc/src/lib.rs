@@ -567,6 +567,43 @@ mod tests {
     }
 
     #[test]
+    fn every_single_bit_corruption_is_rejected() {
+        let frame = sine_frame(100.0, 0.2);
+        let mut encoder = HvcEncoder;
+        let packet = encoder.encode(&frame).expect("encode tone");
+        let original = packet.into_bytes();
+
+        for byte_index in 0..HVC_PACKET_BYTES {
+            for bit_index in 0..8 {
+                let mut corrupted = original;
+                corrupted[byte_index] ^= 1_u8 << bit_index;
+                assert!(
+                    HvcPacket::from_bytes(corrupted).is_err(),
+                    "single-bit corruption accepted at byte {byte_index}, bit {bit_index}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn long_stateful_round_trip_stays_finite_and_bounded() {
+        let mut encoder = HvcEncoder;
+        let mut decoder = HvcDecoder::default();
+
+        for frame_index in 0..500_u64 {
+            let frequency = 85.0 + (frame_index % 140) as f32;
+            let frame = sine_frame(frequency, 0.12);
+            let packet = encoder.encode(&frame).expect("encode long stream");
+            let decoded = decoder
+                .decode(&packet, frame_index * HVC_FRAME_SAMPLES as u64)
+                .expect("decode long stream");
+
+            assert!(decoded.samples().iter().all(|sample| sample.is_finite()));
+            assert!(decoded.samples().iter().all(|sample| sample.abs() <= 1.0));
+        }
+    }
+
+    #[test]
     fn hvc_reports_open_codec_kind() {
         let codec = HvcCodec;
         assert_eq!(codec.name(), "hvc-v0");

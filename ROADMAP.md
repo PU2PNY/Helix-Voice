@@ -52,10 +52,10 @@
 
 ## Phase 5 — HVC research
 
-- [ ] requirements document
-- [ ] independently designed feature representation
-- [ ] bitstream draft
-- [ ] encoder/decoder prototype
+- [x] requirements document
+- [x] independently designed feature representation
+- [x] bitstream draft v0
+- [x] encoder/decoder prototype + canonical synthetic vector
 - [ ] packet-loss robustness
 - [ ] objective and listening tests
 - [ ] independent interoperability implementation

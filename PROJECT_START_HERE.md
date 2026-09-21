@@ -18,11 +18,13 @@ Este é o ponto inicial obrigatório para qualquer pessoa ou IA que vá analisar
 3. `PROJECT_TEST_MATRIX.md` — o que foi realmente testado.
 4. `PROJECT_CHANGELOG.md` — evolução e decisões.
 5. `CLEAN_ROOM.md` — regra obrigatória de desenvolvimento independente.
-6. `ARCHITECTURE.md` — arquitetura técnica.
-7. `SPEC.md` — especificação HVE v0 de baixo nível.
-8. `ROADMAP.md` — sequência planejada.
-9. `THIRD_PARTY.md` — dependências/referências externas.
-10. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
+6. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
+7. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
+8. `ARCHITECTURE.md` — arquitetura técnica.
+9. `SPEC.md` — especificação HVE v0 de baixo nível.
+10. `ROADMAP.md` — sequência planejada.
+11. `THIRD_PARTY.md` — dependências/referências externas.
+12. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
 
 ## Regra para qualquer IA
 

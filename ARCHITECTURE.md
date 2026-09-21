@@ -39,6 +39,7 @@ This is an internal engineering container, not the HVC bitstream specification.
 
 - `helix-core` — real-time-safe shared data types and interfaces.
 - `helix-dsp` — audio level measurement, AGC and limiter prototypes.
+- `helix-hvc` — experimental independent HVC v0 encoder/decoder and fixed versioned bitstream.
 - `helix-xlx` — XLX integration boundary; no proprietary codec implementation.
 - `helix-daemon` — future service process.
 
@@ -52,7 +53,7 @@ Planned later:
 - M17/Codec2 adapter after license/API review;
 - optional Opus adapter;
 - laboratory legacy-codec backend boundary;
-- HVC research crate kept separate from interoperability code.
+- HVC quality laboratory, PLC/FEC research and independent conformance implementation.
 
 ## Real-time rules
 

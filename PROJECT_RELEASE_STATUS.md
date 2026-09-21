@@ -16,7 +16,7 @@ Atualizado: 2026-09-21
 - **Produção:** não
 - **Integração real XLX026:** PENDENTE
 - **Integração real PU2PNY-OS:** PENDENTE
-- **HVC:** pesquisa futura, ainda sem bitstream
+- **HVC:** v0 experimental implementado em SW; bitstream próprio de pesquisa, ainda sem validação auditiva/HW/interoperabilidade independente
 
 ## Concluído com evidência SW
 
@@ -34,7 +34,10 @@ Atualizado: 2026-09-21
 - CI com rustfmt, clippy e cargo test;
 - CI final da baseline passou no run `35601721908`;
 - documentação clean-room, arquitetura, segurança e integrações;
-- governança persistente criada.
+- governança persistente criada;
+- `helix-hvc` v0: encoder, bitstream fixo próprio, decoder, CRC-8 e vetor sintético canônico;
+- HVC v0: 8 kHz mono, 20 ms, 12 bytes por frame, 4.800 bit/s de payload;
+- Rust CI do HVC passou no run `35615775362` (format + clippy + tests).
 
 ## Parcial / protótipo
 
@@ -43,6 +46,7 @@ Atualizado: 2026-09-21
 - XLX adapter: apenas estrutura/configuração; não há transporte XLXD implementado.
 - Daemon: inicialização/estado básico; não é daemon de áudio funcional.
 - Audio quality framework: documentação existe; métricas reais ainda não coletadas.
+- HVC v0: caminho encode→packet→decode existe e está coberto por testes SW; qualidade perceptual, robustez de canal e interoperabilidade independente ainda não foram validadas.
 
 ## Pendente
 
@@ -66,7 +70,8 @@ Atualizado: 2026-09-21
 - testes RF reais;
 - análise final de licenças de Codec2/M17/Opus/RNNoise/RADE;
 - escolha da licença do próprio Helix;
-- especificação HVC.
+- implementação HVC independente de referência/conformidade;
+- avaliação objetiva e auditiva do HVC com fala real legalmente utilizável;
 
 ## Bloqueadores de produção
 
@@ -76,7 +81,7 @@ Atualizado: 2026-09-21
 4. ausência de testes auditivos;
 5. ausência de interface real XLXD;
 6. licença final do projeto ainda não definida;
-7. HVC ainda não especificado.
+7. HVC ainda sem evidência auditiva, HW e implementação independente interoperável.
 
 ## Próxima sequência recomendada
 
@@ -85,4 +90,6 @@ Atualizado: 2026-09-21
 3. adicionar benchmark e relatório de nível/clipping;
 4. implementar ferramenta WAV offline;
 5. somente então iniciar XLX observe-only;
-6. não tocar em áudio de produção até cumprir gates XLX.
+6. adicionar laboratório WAV/corpus legal para HVC e métricas objetivas;
+7. implementar uma segunda implementação de conformidade do HVC;
+8. não tocar em áudio de produção até cumprir gates XLX.
