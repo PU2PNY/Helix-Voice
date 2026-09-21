@@ -490,6 +490,22 @@ mod tests {
     }
 
     #[test]
+    fn silence_has_stable_reference_vector() {
+        let input = [0.0_f32; HVC_FRAME_SAMPLES];
+        let frame =
+            PcmFrame::from_slice(HVC_SAMPLE_RATE_HZ, 0, &input).expect("valid silence frame");
+        let mut encoder = HvcEncoder;
+        let packet = encoder.encode(&frame).expect("encode silence");
+
+        assert_eq!(
+            packet.into_bytes(),
+            [
+                0x48, 0x00, 0x00, 0x00, 0x00, 0x20, 0x08, 0x82, 0x20, 0x08, 0x82, 0x7e,
+            ]
+        );
+    }
+
+    #[test]
     fn silence_round_trip_stays_silent() {
         let input = [0.0_f32; HVC_FRAME_SAMPLES];
         let frame =
