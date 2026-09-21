@@ -71,6 +71,7 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
     let decoded = hvc_roundtrip(&input_pcm)?;
     let elapsed = started.elapsed();
     let output_metrics = measure(&decoded);
+    let spectral_distance = band_log_spectral_distance_db(&input_pcm, &decoded);
 
     write_wav(
         output,
@@ -106,6 +107,9 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
         "output_rms={:.6} output_peak={:.6} output_clipped={}",
         output_metrics.rms, output_metrics.peak, output_metrics.clipping_samples
     );
+    if let Some(distance_db) = spectral_distance {
+        println!("band_log_spectral_distance_db={distance_db:.3}");
+    }
     println!("processing_ms={:.3}", elapsed.as_secs_f64() * 1_000.0);
     println!("realtime_factor={realtime_factor:.2}x");
 
@@ -266,6 +270,81 @@ fn measure(samples: &[f32]) -> AudioMetrics {
     }
 }
 
+fn band_log_spectral_distance_db(reference: &[f32], test: &[f32]) -> Option<f32> {
+    const BANDS: usize = 8;
+    const SILENCE_RMS: f32 = 0.003;
+    const POWER_FLOOR: f32 = 1.0e-12;
+
+    let frame_count = reference.len().min(test.len()) / HVC_FRAME_SAMPLES;
+    let mut total = 0.0_f32;
+    let mut active_frames = 0_usize;
+
+    for frame_index in 0..frame_count {
+        let start = frame_index * HVC_FRAME_SAMPLES;
+        let end = start + HVC_FRAME_SAMPLES;
+        let reference_frame = &reference[start..end];
+        let test_frame = &test[start..end];
+
+        if measure(reference_frame).rms < SILENCE_RMS {
+            continue;
+        }
+
+        let reference_bands = band_log_energies(reference_frame, POWER_FLOOR);
+        let test_bands = band_log_energies(test_frame, POWER_FLOOR);
+
+        let squared_error = reference_bands
+            .iter()
+            .zip(test_bands)
+            .map(|(left, right)| {
+                let difference = *left - right;
+                difference * difference
+            })
+            .sum::<f32>()
+            / BANDS as f32;
+
+        total += squared_error.sqrt();
+        active_frames += 1;
+    }
+
+    if active_frames == 0 {
+        None
+    } else {
+        Some(total / active_frames as f32)
+    }
+}
+
+fn band_log_energies(frame: &[f32], floor: f32) -> [f32; 8] {
+    const BANDS: usize = 8;
+    let mut bands = [0.0_f32; BANDS];
+    let frame_len = frame.len() as f32;
+
+    for bin in 1..(HVC_FRAME_SAMPLES / 2) {
+        let mut real = 0.0_f32;
+        let mut imag = 0.0_f32;
+
+        for (index, sample) in frame.iter().enumerate() {
+            let window_phase =
+                2.0 * core::f32::consts::PI * index as f32 / (HVC_FRAME_SAMPLES - 1) as f32;
+            let window = 0.54 - 0.46 * window_phase.cos();
+            let angle =
+                2.0 * core::f32::consts::PI * bin as f32 * index as f32 / frame_len;
+            let weighted = *sample * window;
+            real += weighted * angle.cos();
+            imag -= weighted * angle.sin();
+        }
+
+        let power = real * real + imag * imag;
+        let band = (bin * BANDS / (HVC_FRAME_SAMPLES / 2)).min(BANDS - 1);
+        bands[band] += power;
+    }
+
+    for energy in &mut bands {
+        *energy = 10.0 * energy.max(floor).log10();
+    }
+
+    bands
+}
+
 fn synthetic_voiced_frame(frequency_hz: f32, amplitude: f32) -> [f32; HVC_FRAME_SAMPLES] {
     let mut samples = [0.0_f32; HVC_FRAME_SAMPLES];
     for (index, sample) in samples.iter_mut().enumerate() {
@@ -414,6 +493,20 @@ fn read_u32_le(bytes: &[u8], offset: usize) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn spectral_distance_is_zero_for_identical_signal() {
+        let signal: Vec<f32> = (0..(HVC_FRAME_SAMPLES * 4))
+            .map(|index| {
+                let time = index as f32 / HVC_SAMPLE_RATE_HZ as f32;
+                0.2 * (2.0 * core::f32::consts::PI * 440.0 * time).sin()
+            })
+            .collect();
+
+        let distance =
+            band_log_spectral_distance_db(&signal, &signal).expect("active speech-like signal");
+        assert!(distance < 1.0e-4, "distance={distance}");
+    }
 
     #[test]
     fn wav_round_trip_preserves_pcm16() {
