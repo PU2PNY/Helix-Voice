@@ -34,12 +34,27 @@ fn run() -> Result<(), String> {
                 .ok_or_else(|| "missing output WAV path".to_owned())?;
             roundtrip_file(Path::new(input), Path::new(output))
         }
+        Some("loss-roundtrip") => {
+            let input = args
+                .get(2)
+                .ok_or_else(|| "missing input WAV path".to_owned())?;
+            let output = args
+                .get(3)
+                .ok_or_else(|| "missing output WAV path".to_owned())?;
+            let loss_percent = args
+                .get(4)
+                .ok_or_else(|| "missing loss percent".to_owned())?
+                .parse::<u8>()
+                .map_err(|_| "loss percent must be an integer from 0 to 100".to_owned())?;
+            loss_roundtrip_file(Path::new(input), Path::new(output), loss_percent)
+        }
         Some("benchmark") => benchmark(),
         Some("self-test") => self_test(),
         _ => {
             println!("Helix Voice laboratory");
             println!("Usage:");
             println!("  helix-lab roundtrip <input.wav> <output.wav>");
+            println!("  helix-lab loss-roundtrip <input.wav> <output.wav> <loss_percent>");
             println!("  helix-lab benchmark");
             println!("  helix-lab self-test");
             Ok(())
@@ -114,6 +129,116 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
     println!("realtime_factor={realtime_factor:.2}x");
 
     Ok(())
+}
+
+fn loss_roundtrip_file(input: &Path, output: &Path, loss_percent: u8) -> Result<(), String> {
+    if loss_percent > 100 {
+        return Err("loss percent must be from 0 to 100".to_owned());
+    }
+
+    let wav = read_wav(input)?;
+    validate_lab_wav(&wav)?;
+    let input_pcm = prepare_hvc_pcm(&wav)?;
+    let input_metrics = measure(&input_pcm);
+
+    let started = Instant::now();
+    let (decoded, lost_frames, total_frames) = hvc_roundtrip_with_loss(&input_pcm, loss_percent)?;
+    let elapsed = started.elapsed();
+    let output_metrics = measure(&decoded);
+    let spectral_distance = band_log_spectral_distance_db(&input_pcm, &decoded);
+
+    write_wav(
+        output,
+        &WavPcm16Mono {
+            sample_rate_hz: HVC_SAMPLE_RATE_HZ,
+            samples: decoded.into_iter().map(f32_to_i16).collect(),
+        },
+    )?;
+
+    let audio_seconds = input_pcm.len() as f64 / f64::from(HVC_SAMPLE_RATE_HZ);
+    let realtime_factor = if elapsed.as_secs_f64() > 0.0 {
+        audio_seconds / elapsed.as_secs_f64()
+    } else {
+        f64::INFINITY
+    };
+
+    println!("HVC v0 packet-loss round-trip complete");
+    println!("input:  {}", input.display());
+    println!("output: {}", output.display());
+    println!("requested_loss_percent: {loss_percent}");
+    println!("frames: {total_frames}");
+    println!("lost_frames: {lost_frames}");
+    println!(
+        "observed_loss_percent: {:.3}",
+        if total_frames > 0 {
+            lost_frames as f64 * 100.0 / total_frames as f64
+        } else {
+            0.0
+        }
+    );
+    println!(
+        "input_rms={:.6} input_peak={:.6} input_clipped={}",
+        input_metrics.rms, input_metrics.peak, input_metrics.clipping_samples
+    );
+    println!(
+        "output_rms={:.6} output_peak={:.6} output_clipped={}",
+        output_metrics.rms, output_metrics.peak, output_metrics.clipping_samples
+    );
+    if let Some(distance_db) = spectral_distance {
+        println!("band_log_spectral_distance_db={distance_db:.3}");
+    }
+    println!("processing_ms={:.3}", elapsed.as_secs_f64() * 1_000.0);
+    println!("realtime_factor={realtime_factor:.2}x");
+
+    Ok(())
+}
+
+fn hvc_roundtrip_with_loss(
+    input: &[f32],
+    loss_percent: u8,
+) -> Result<(Vec<f32>, usize, usize), String> {
+    if input.is_empty() {
+        return Err("input contains no samples".to_owned());
+    }
+
+    let mut encoder = HvcEncoder;
+    let mut decoder = HvcDecoder::default();
+    let mut output = Vec::with_capacity(input.len());
+    let mut lost_frames = 0_usize;
+    let mut rng = 0x48_56_43_4c_u32;
+
+    for (frame_index, chunk) in input.chunks(HVC_FRAME_SAMPLES).enumerate() {
+        let mut padded = [0.0_f32; HVC_FRAME_SAMPLES];
+        padded[..chunk.len()].copy_from_slice(chunk);
+
+        let timestamp = (frame_index * HVC_FRAME_SAMPLES) as u64;
+        let frame = PcmFrame::from_slice(HVC_SAMPLE_RATE_HZ, timestamp, &padded)
+            .map_err(|error| format!("PCM frame creation failed: {error:?}"))?;
+        let packet = encoder
+            .encode(&frame)
+            .map_err(|error| format!("HVC encode failed: {error:?}"))?;
+
+        rng ^= rng << 13;
+        rng ^= rng >> 17;
+        rng ^= rng << 5;
+        let lost = (rng % 100) < u32::from(loss_percent);
+
+        let decoded = if lost {
+            lost_frames += 1;
+            decoder
+                .conceal_loss(timestamp)
+                .map_err(|error| format!("HVC PLC failed: {error:?}"))?
+        } else {
+            decoder
+                .decode(&packet, timestamp)
+                .map_err(|error| format!("HVC decode failed: {error:?}"))?
+        };
+
+        output.extend_from_slice(&decoded.samples()[..chunk.len()]);
+    }
+
+    let total_frames = input.len().div_ceil(HVC_FRAME_SAMPLES);
+    Ok((output, lost_frames, total_frames))
 }
 
 fn hvc_roundtrip(input: &[f32]) -> Result<Vec<f32>, String> {
@@ -505,6 +630,28 @@ mod tests {
         let distance =
             band_log_spectral_distance_db(&signal, &signal).expect("active speech-like signal");
         assert!(distance < 1.0e-4, "distance={distance}");
+    }
+
+    #[test]
+    fn loss_round_trip_is_deterministic_and_bounded() {
+        let input: Vec<f32> = (0..(HVC_FRAME_SAMPLES * 100))
+            .map(|index| {
+                let time = index as f32 / HVC_SAMPLE_RATE_HZ as f32;
+                0.12 * (2.0 * core::f32::consts::PI * 125.0 * time).sin()
+            })
+            .collect();
+
+        let (first, lost_first, total_first) =
+            hvc_roundtrip_with_loss(&input, 10).expect("loss roundtrip");
+        let (second, lost_second, total_second) =
+            hvc_roundtrip_with_loss(&input, 10).expect("repeat loss roundtrip");
+
+        assert_eq!(lost_first, lost_second);
+        assert_eq!(total_first, total_second);
+        assert_eq!(first, second);
+        assert!(first.iter().all(|sample| sample.is_finite()));
+        assert!(first.iter().all(|sample| sample.abs() <= 1.0));
+        assert!(lost_first > 0);
     }
 
     #[test]
