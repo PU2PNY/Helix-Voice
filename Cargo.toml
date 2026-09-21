@@ -4,6 +4,7 @@ members = [
     "crates/helix-core",
     "crates/helix-dsp",
     "crates/helix-hvc",
+    "crates/helix-lab",
     "crates/helix-xlx",
     "crates/helix-daemon",
 ]

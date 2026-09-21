@@ -1,0 +1,13 @@
+[package]
+name = "helix-lab"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+helix-core = { path = "../helix-core" }
+helix-hvc = { path = "../helix-hvc" }
+
+[lints]
+workspace = true
