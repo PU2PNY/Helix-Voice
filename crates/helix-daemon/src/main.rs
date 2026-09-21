@@ -62,8 +62,7 @@ fn print_health() {
 fn self_test() -> Result<(), String> {
     let mut input = [0.0_f32; HVC_FRAME_SAMPLES];
     for (index, sample) in input.iter_mut().enumerate() {
-        let phase = 2.0 * core::f32::consts::PI * 125.0 * index as f32
-            / HVC_SAMPLE_RATE_HZ as f32;
+        let phase = 2.0 * core::f32::consts::PI * 125.0 * index as f32 / HVC_SAMPLE_RATE_HZ as f32;
         *sample = 0.1 * phase.sin();
     }
 
@@ -118,9 +117,6 @@ mod tests {
 
     #[test]
     fn default_xlx_mode_is_disabled() {
-        assert_eq!(
-            XlxBridgeConfig::default().mode,
-            IntegrationMode::Disabled
-        );
+        assert_eq!(XlxBridgeConfig::default().mode, IntegrationMode::Disabled);
     }
 }
