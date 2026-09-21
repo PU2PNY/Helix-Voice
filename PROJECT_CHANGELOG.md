@@ -54,3 +54,15 @@ Criado ponto de retorno:
 
 ### Estado
 Nenhuma integração XLX026 ou PU2PNY-OS real foi declarada concluída. Nenhuma evidência HW/PROD existe nesta baseline.
+
+## 2026-09-21 — Regra operacional de execução autônoma
+
+A governança de agentes passou a exigir execução ponta a ponta com intervenção humana mínima quando o objetivo estiver suficientemente definido.
+
+Regras registradas:
+- falhas devem ser diagnosticadas, corrigidas e retestadas em vez de encerrar o trabalho na primeira ocorrência;
+- dúvidas técnicas verificáveis devem ser resolvidas por pesquisa, inspeção ou teste;
+- funcionalidades já comprovadas, requisitos e rollback devem ser preservados;
+- nenhuma falha pode ser ocultada ou convertida em sucesso por declaração;
+- intervenção humana fica reservada a bloqueios externos reais;
+- agentes não podem prometer trabalho em segundo plano nem declarar conclusão sem evidência.
