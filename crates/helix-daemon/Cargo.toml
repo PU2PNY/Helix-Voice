@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 helix-core = { path = "../helix-core" }
 helix-dsp = { path = "../helix-dsp" }
+helix-hvc = { path = "../helix-hvc" }
 helix-xlx = { path = "../helix-xlx" }
 
 [lints]
