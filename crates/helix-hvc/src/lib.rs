@@ -17,6 +17,8 @@ const REFLECTION_LIMIT: f32 = 0.95;
 const VOICED_CORRELATION_THRESHOLD: f32 = 0.38;
 const VOICED_RMS_THRESHOLD: f32 = 0.003;
 const OUTPUT_HEADROOM: f32 = 0.98;
+const PLC_ATTENUATION_PER_FRAME: f32 = 0.84;
+const MAX_CONSECUTIVE_PLC_FRAMES: u8 = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HvcError {
@@ -135,6 +137,8 @@ pub struct HvcDecoder {
     synthesis_history: [f32; LPC_ORDER],
     pitch_countdown: usize,
     rng_state: u32,
+    last_output: [f32; HVC_FRAME_SAMPLES],
+    consecutive_losses: u8,
 }
 
 impl Default for HvcDecoder {
@@ -143,6 +147,8 @@ impl Default for HvcDecoder {
             synthesis_history: [0.0; LPC_ORDER],
             pitch_countdown: 0,
             rng_state: 0x48_56_43_30,
+            last_output: [0.0; HVC_FRAME_SAMPLES],
+            consecutive_losses: 0,
         }
     }
 }
@@ -163,6 +169,8 @@ impl HvcDecoder {
             for sample in &mut self.synthesis_history {
                 *sample *= 0.5;
             }
+            self.last_output = output;
+            self.consecutive_losses = 0;
             return Ok(PcmFrame::from_slice(
                 HVC_SAMPLE_RATE_HZ,
                 timestamp_samples,
@@ -211,6 +219,40 @@ impl HvcDecoder {
         }
 
         normalize_rms(&mut output, target_rms);
+        self.last_output = output;
+        self.consecutive_losses = 0;
+
+        Ok(PcmFrame::from_slice(
+            HVC_SAMPLE_RATE_HZ,
+            timestamp_samples,
+            &output,
+        )?)
+    }
+
+    /// Conceals one missing 20 ms HVC frame using bounded repetition with
+    /// progressive attenuation. After 100 ms of consecutive loss, output
+    /// becomes silence rather than sustaining stale speech indefinitely.
+    pub fn conceal_loss(&mut self, timestamp_samples: u64) -> Result<PcmFrame, HvcError> {
+        let mut output = [0.0_f32; HVC_FRAME_SAMPLES];
+
+        if self.consecutive_losses < MAX_CONSECUTIVE_PLC_FRAMES {
+            let previous_tail = self.last_output[HVC_FRAME_SAMPLES - 1];
+            for (index, sample) in output.iter_mut().enumerate() {
+                let target = self.last_output[index] * PLC_ATTENUATION_PER_FRAME;
+                if index < 8 {
+                    let alpha = (index + 1) as f32 / 9.0;
+                    *sample = previous_tail * (1.0 - alpha) + target * alpha;
+                } else {
+                    *sample = target;
+                }
+            }
+        }
+
+        for sample in &mut self.synthesis_history {
+            *sample *= PLC_ATTENUATION_PER_FRAME;
+        }
+        self.last_output = output;
+        self.consecutive_losses = self.consecutive_losses.saturating_add(1);
 
         Ok(PcmFrame::from_slice(
             HVC_SAMPLE_RATE_HZ,
@@ -623,6 +665,56 @@ mod tests {
                     .all(|sample| sample.abs() <= OUTPUT_HEADROOM)
             );
         }
+    }
+
+    #[test]
+    fn plc_without_history_returns_silence() {
+        let mut decoder = HvcDecoder::default();
+        let concealed = decoder.conceal_loss(0).expect("conceal loss");
+        assert!(concealed.samples().iter().all(|sample| sample.abs() < 1.0e-9));
+    }
+
+    #[test]
+    fn plc_is_bounded_and_fades_to_silence() {
+        let frame = sine_frame(125.0, 0.15);
+        let mut encoder = HvcEncoder;
+        let packet = encoder.encode(&frame).expect("encode tone");
+        let mut decoder = HvcDecoder::default();
+        let decoded = decoder.decode(&packet, 0).expect("decode tone");
+        let initial_rms = rms(decoded.samples());
+
+        let mut previous_rms = initial_rms;
+        for loss_index in 0..MAX_CONSECUTIVE_PLC_FRAMES {
+            let concealed = decoder
+                .conceal_loss((u64::from(loss_index) + 1) * HVC_FRAME_SAMPLES as u64)
+                .expect("conceal loss");
+            let concealed_rms = rms(concealed.samples());
+            assert!(concealed.samples().iter().all(|sample| sample.is_finite()));
+            assert!(concealed.samples().iter().all(|sample| sample.abs() <= OUTPUT_HEADROOM));
+            assert!(concealed_rms <= previous_rms + 1.0e-6);
+            previous_rms = concealed_rms;
+        }
+
+        let silence = decoder
+            .conceal_loss((u64::from(MAX_CONSECUTIVE_PLC_FRAMES) + 1) * HVC_FRAME_SAMPLES as u64)
+            .expect("conceal prolonged loss");
+        assert!(rms(silence.samples()) < 1.0e-9);
+    }
+
+    #[test]
+    fn valid_packet_resets_plc_attenuation() {
+        let frame = sine_frame(125.0, 0.15);
+        let mut encoder = HvcEncoder;
+        let packet = encoder.encode(&frame).expect("encode tone");
+        let mut decoder = HvcDecoder::default();
+
+        decoder.decode(&packet, 0).expect("initial decode");
+        decoder.conceal_loss(160).expect("loss");
+        decoder.decode(&packet, 320).expect("recovered decode");
+        let recovered_loss = decoder.conceal_loss(480).expect("loss after recovery");
+
+        assert!(rms(recovered_loss.samples()) > 0.001);
+        assert_eq!(decoder.consecutive_losses, 1);
     }
 
     #[test]
