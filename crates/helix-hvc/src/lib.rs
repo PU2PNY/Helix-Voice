@@ -202,8 +202,7 @@ impl HvcDecoder {
 
             let mut history_index = LPC_ORDER - 1;
             while history_index > 0 {
-                self.synthesis_history[history_index] =
-                    self.synthesis_history[history_index - 1];
+                self.synthesis_history[history_index] = self.synthesis_history[history_index - 1];
                 history_index -= 1;
             }
             self.synthesis_history[0] = synthesized.clamp(-4.0, 4.0);
@@ -372,8 +371,7 @@ fn levinson_reflection(autocorrelation: &[f32; LPC_ORDER + 1]) -> [f32; LPC_ORDE
         let previous = coefficients;
         let mut update = 1_usize;
         while update < order {
-            coefficients[update] =
-                previous[update] + coefficient * previous[order - update];
+            coefficients[update] = previous[update] + coefficient * previous[order - update];
             update += 1;
         }
         coefficients[order] = coefficient;
@@ -396,8 +394,7 @@ fn reflection_to_lpc(reflection: &[f32; LPC_ORDER]) -> [f32; LPC_ORDER + 1] {
 
         let mut index = 1_usize;
         while index < order {
-            coefficients[index] =
-                previous[index] + coefficient * previous[order - index];
+            coefficients[index] = previous[index] + coefficient * previous[order - index];
             index += 1;
         }
         coefficients[order] = coefficient;
@@ -412,8 +409,8 @@ fn pack_reflection(reflection: &[f32; LPC_ORDER], destination: &mut [u8]) {
     let mut packed = 0_u64;
 
     for (index, coefficient) in reflection.iter().enumerate() {
-        let normalized = ((*coefficient + REFLECTION_LIMIT) / (2.0 * REFLECTION_LIMIT))
-            .clamp(0.0, 1.0);
+        let normalized =
+            ((*coefficient + REFLECTION_LIMIT) / (2.0 * REFLECTION_LIMIT)).clamp(0.0, 1.0);
         let quantized = (normalized * 63.0).round() as u64;
         packed |= quantized << (index * 6);
     }
@@ -548,8 +545,7 @@ mod tests {
     #[test]
     fn wrong_frame_shape_is_rejected() {
         let input = [0.1_f32; 80];
-        let frame =
-            PcmFrame::from_slice(HVC_SAMPLE_RATE_HZ, 0, &input).expect("valid core frame");
+        let frame = PcmFrame::from_slice(HVC_SAMPLE_RATE_HZ, 0, &input).expect("valid core frame");
         let mut encoder = HvcEncoder;
         assert_eq!(encoder.encode(&frame), Err(HvcError::WrongFrameLength));
     }
