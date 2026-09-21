@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 
 use helix_core::PcmFrame;
+use helix_dsp::Decimator2;
 use helix_hvc::{
     HVC_BITRATE_BPS, HVC_FRAME_SAMPLES, HVC_PACKET_BYTES, HVC_SAMPLE_RATE_HZ, HvcDecoder,
     HvcEncoder,
@@ -63,11 +64,7 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
     let wav = read_wav(input)?;
     validate_lab_wav(&wav)?;
 
-    let input_pcm: Vec<f32> = wav
-        .samples
-        .iter()
-        .map(|sample| i16_to_f32(*sample))
-        .collect();
+    let input_pcm = prepare_hvc_pcm(&wav)?;
     let input_metrics = measure(&input_pcm);
 
     let started = Instant::now();
@@ -95,7 +92,8 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
     println!("HVC v0 WAV round-trip complete");
     println!("input:  {}", input.display());
     println!("output: {}", output.display());
-    println!("sample_rate_hz: {}", HVC_SAMPLE_RATE_HZ);
+    println!("source_sample_rate_hz: {}", wav.sample_rate_hz);
+    println!("hvc_sample_rate_hz: {}", HVC_SAMPLE_RATE_HZ);
     println!("samples: {}", input_pcm.len());
     println!("frames: {frame_count}");
     println!("encoded_bytes: {encoded_bytes}");
@@ -205,16 +203,39 @@ fn self_test() -> Result<(), String> {
 }
 
 fn validate_lab_wav(wav: &WavPcm16Mono) -> Result<(), String> {
-    if wav.sample_rate_hz != HVC_SAMPLE_RATE_HZ {
+    if wav.sample_rate_hz != HVC_SAMPLE_RATE_HZ && wav.sample_rate_hz != 16_000 {
         return Err(format!(
-            "HVC v0 lab requires {} Hz mono PCM; input is {} Hz",
-            HVC_SAMPLE_RATE_HZ, wav.sample_rate_hz
+            "HVC v0 lab accepts 8000 or 16000 Hz mono PCM; input is {} Hz",
+            wav.sample_rate_hz
         ));
     }
     if wav.samples.is_empty() {
         return Err("WAV data chunk is empty".to_owned());
     }
     Ok(())
+}
+
+fn prepare_hvc_pcm(wav: &WavPcm16Mono) -> Result<Vec<f32>, String> {
+    validate_lab_wav(wav)?;
+
+    let input: Vec<f32> = wav
+        .samples
+        .iter()
+        .map(|sample| i16_to_f32(*sample))
+        .collect();
+
+    if wav.sample_rate_hz == HVC_SAMPLE_RATE_HZ {
+        return Ok(input);
+    }
+
+    let mut decimator = Decimator2::default();
+    let required = decimator.required_output_len(input.len());
+    let mut output = vec![0.0_f32; required];
+    let produced = decimator
+        .process(&input, &mut output)
+        .map_err(|error| format!("16 kHz to 8 kHz resampling failed: {error:?}"))?;
+    output.truncate(produced);
+    Ok(output)
 }
 
 fn measure(samples: &[f32]) -> AudioMetrics {
@@ -422,9 +443,20 @@ mod tests {
     }
 
     #[test]
-    fn rejects_wrong_sample_rate_for_hvc_v0() {
+    fn accepts_16khz_and_resamples_for_hvc_v0() {
         let wav = WavPcm16Mono {
             sample_rate_hz: 16_000,
+            samples: vec![0; 320],
+        };
+        let prepared = prepare_hvc_pcm(&wav).expect("resample");
+        assert_eq!(prepared.len(), 160);
+        assert!(prepared.iter().all(|sample| sample.is_finite()));
+    }
+
+    #[test]
+    fn rejects_unsupported_sample_rate_for_hvc_v0() {
+        let wav = WavPcm16Mono {
+            sample_rate_hz: 44_100,
             samples: vec![0; 160],
         };
         assert!(validate_lab_wav(&wav).is_err());
