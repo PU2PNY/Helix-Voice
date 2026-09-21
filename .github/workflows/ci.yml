@@ -32,6 +32,9 @@ jobs:
       - name: Helix lab self-test
         run: cargo run --quiet -p helix-lab -- self-test
 
+      - name: Helix daemon self-test
+        run: cargo run --quiet -p helix-daemon -- --self-test
+
   static-lab:
     needs: rust
     runs-on: ubuntu-latest
@@ -51,16 +54,18 @@ jobs:
 
       - name: Build static helix-lab
         run: |
-          cargo build --release -p helix-lab --target x86_64-unknown-linux-musl
+          cargo build --release -p helix-lab -p helix-daemon --target x86_64-unknown-linux-musl
           mkdir -p dist
           cp target/x86_64-unknown-linux-musl/release/helix-lab dist/helix-lab
-          chmod 0755 dist/helix-lab
+          cp target/x86_64-unknown-linux-musl/release/helix-daemon dist/helix-daemon
+          chmod 0755 dist/helix-lab dist/helix-daemon
           sha256sum dist/helix-lab > dist/helix-lab.sha256
+          sha256sum dist/helix-daemon > dist/helix-daemon.sha256
 
       - name: Upload static helix-lab
         uses: actions/upload-artifact@v7
         with:
-          name: helix-lab-linux-x86_64-musl
+          name: helix-linux-x86_64-musl
           path: dist/
           if-no-files-found: error
           retention-days: 7
