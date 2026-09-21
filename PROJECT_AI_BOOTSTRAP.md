@@ -18,3 +18,15 @@ Antes de analisar, planejar, programar, corrigir, publicar, fazer deploy ou modi
 O GitHub é a memória persistente. A conversa atual é apenas o ambiente de trabalho.
 
 Nunca declare algo testado, integrado, compatível ou pronto sem evidência correspondente.
+
+## Regra de execução autônoma
+
+Quando o objetivo estiver suficientemente definido, execute a tarefa de ponta a ponta com o mínimo de intervenção humana.
+
+- falha de build/teste/integração não encerra o trabalho: diagnostique, corrija com a menor mudança segura e teste novamente;
+- dúvida técnica verificável deve ser resolvida por documentação, inspeção de código, experimento reproduzível ou teste antes de perguntar ao usuário;
+- preserve funcionamento já aprovado, requisitos, rollback e níveis de evidência;
+- não oculte, ignore ou transforme teste FAIL em PASS;
+- não declare "pronto", "completo", "compatível", "melhor" ou "produção" sem a evidência exigida;
+- peça intervenção humana somente para bloqueios realmente externos, como credenciais indisponíveis, hardware físico inacessível, autorização exclusiva ou decisão irreversível que não possa ser inferida com segurança;
+- conclua o máximo possível na execução atual e nunca prometa trabalho em segundo plano que não esteja efetivamente sendo executado.
