@@ -1,0 +1,14 @@
+[package]
+name = "helix-daemon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+helix-core = { path = "../helix-core" }
+helix-dsp = { path = "../helix-dsp" }
+helix-xlx = { path = "../helix-xlx" }
+
+[lints]
+workspace = true
