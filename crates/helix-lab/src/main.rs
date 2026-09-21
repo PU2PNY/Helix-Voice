@@ -63,7 +63,11 @@ fn roundtrip_file(input: &Path, output: &Path) -> Result<(), String> {
     let wav = read_wav(input)?;
     validate_lab_wav(&wav)?;
 
-    let input_pcm: Vec<f32> = wav.samples.iter().map(|sample| i16_to_f32(*sample)).collect();
+    let input_pcm: Vec<f32> = wav
+        .samples
+        .iter()
+        .map(|sample| i16_to_f32(*sample))
+        .collect();
     let input_metrics = measure(&input_pcm);
 
     let started = Instant::now();
@@ -163,8 +167,7 @@ fn benchmark() -> Result<(), String> {
     }
 
     let elapsed = started.elapsed();
-    let audio_seconds =
-        FRAMES as f64 * HVC_FRAME_SAMPLES as f64 / f64::from(HVC_SAMPLE_RATE_HZ);
+    let audio_seconds = FRAMES as f64 * HVC_FRAME_SAMPLES as f64 / f64::from(HVC_SAMPLE_RATE_HZ);
     let realtime_factor = audio_seconds / elapsed.as_secs_f64().max(f64::EPSILON);
 
     println!("HVC v0 synthetic benchmark");
@@ -245,8 +248,8 @@ fn measure(samples: &[f32]) -> AudioMetrics {
 fn synthetic_voiced_frame(frequency_hz: f32, amplitude: f32) -> [f32; HVC_FRAME_SAMPLES] {
     let mut samples = [0.0_f32; HVC_FRAME_SAMPLES];
     for (index, sample) in samples.iter_mut().enumerate() {
-        let phase = 2.0 * core::f32::consts::PI * frequency_hz * index as f32
-            / HVC_SAMPLE_RATE_HZ as f32;
+        let phase =
+            2.0 * core::f32::consts::PI * frequency_hz * index as f32 / HVC_SAMPLE_RATE_HZ as f32;
         *sample = amplitude * phase.sin();
     }
     samples
@@ -266,7 +269,8 @@ fn f32_to_i16(sample: f32) -> i16 {
 }
 
 fn read_wav(path: &Path) -> Result<WavPcm16Mono, String> {
-    let bytes = fs::read(path).map_err(|error| format!("cannot read {}: {error}", path.display()))?;
+    let bytes =
+        fs::read(path).map_err(|error| format!("cannot read {}: {error}", path.display()))?;
     parse_wav(&bytes)
 }
 
@@ -298,10 +302,8 @@ fn parse_wav(bytes: &[u8]) -> Result<WavPcm16Mono, String> {
             let audio_format = read_u16_le(bytes, start).ok_or_else(|| "bad fmt".to_owned())?;
             let channels =
                 read_u16_le(bytes, start + 2).ok_or_else(|| "bad channel count".to_owned())?;
-            let rate =
-                read_u32_le(bytes, start + 4).ok_or_else(|| "bad sample rate".to_owned())?;
-            let bits =
-                read_u16_le(bytes, start + 14).ok_or_else(|| "bad bit depth".to_owned())?;
+            let rate = read_u32_le(bytes, start + 4).ok_or_else(|| "bad sample rate".to_owned())?;
+            let bits = read_u16_le(bytes, start + 14).ok_or_else(|| "bad bit depth".to_owned())?;
 
             if audio_format != 1 {
                 return Err("only integer PCM WAV is supported".to_owned());
