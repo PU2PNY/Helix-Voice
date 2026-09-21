@@ -44,3 +44,14 @@ Antes de propor ou executar mudanças:
 A conversa é ambiente de trabalho. O GitHub e estes documentos são a memória técnica persistente.
 
 A implementação real continua sendo autoridade sobre o que o software efetivamente faz. Documentação que contradiga código ou teste deve ser corrigida, não presumida verdadeira.
+
+## Regra operacional de autonomia
+
+Para objetivos suficientemente definidos, o padrão é execução ponta a ponta com intervenção humana mínima.
+
+1. encontrou erro: diagnostique, corrija e repita a validação;
+2. encontrou dúvida técnica verificável: pesquise, inspecione ou teste antes de interromper;
+3. preserve funcionalidades PASS, requisitos aprovados e rollback;
+4. nunca esconda falhas nem declare conclusão sem evidência correspondente;
+5. solicite ação do usuário somente quando houver bloqueio externo real (credencial, hardware inacessível, autorização exclusiva ou decisão irreversível não inferível);
+6. faça o máximo possível na execução atual; não prometa conclusão futura em segundo plano.
