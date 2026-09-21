@@ -552,10 +552,12 @@ mod tests {
 
         assert_eq!(decoded.samples().len(), HVC_FRAME_SAMPLES);
         assert!(decoded.samples().iter().all(|sample| sample.is_finite()));
-        assert!(decoded
-            .samples()
-            .iter()
-            .all(|sample| sample.abs() <= OUTPUT_HEADROOM));
+        assert!(
+            decoded
+                .samples()
+                .iter()
+                .all(|sample| sample.abs() <= OUTPUT_HEADROOM)
+        );
         assert!(rms(decoded.samples()) > 0.001);
     }
 
@@ -614,10 +616,12 @@ mod tests {
                 .expect("decode long stream");
 
             assert!(decoded.samples().iter().all(|sample| sample.is_finite()));
-            assert!(decoded
-                .samples()
-                .iter()
-                .all(|sample| sample.abs() <= OUTPUT_HEADROOM));
+            assert!(
+                decoded
+                    .samples()
+                    .iter()
+                    .all(|sample| sample.abs() <= OUTPUT_HEADROOM)
+            );
         }
     }
 
