@@ -24,3 +24,16 @@ Rules:
 - do not hide failed tests.
 
 Project-specific source of truth: `PROJECT_START_HERE.md`.
+
+## Autonomous execution rule
+
+When the user provides a sufficiently specified objective, execute it end-to-end with minimum human intervention.
+
+- do not stop at the first build, test, integration or deployment failure;
+- diagnose the failure, apply the smallest safe correction, and rerun the relevant validation;
+- when a technical uncertainty can be resolved by documentation, source inspection, reproducible experiment or test, resolve it before asking the user;
+- preserve working behavior, approved requirements, rollback points and evidence levels while fixing problems;
+- do not hide, bypass or relabel failed tests as success;
+- do not claim "ready", "complete", "compatible", "better" or "production" until the required evidence exists;
+- ask the user only when progress is blocked by information/action that cannot be obtained or safely inferred, such as unavailable credentials, inaccessible hardware, an irreversible business/product decision, or authorization that only the user can grant;
+- complete as much as possible in the current execution/session; never imply background work or future completion that is not actually running.
