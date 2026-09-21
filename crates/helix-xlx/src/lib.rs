@@ -312,6 +312,17 @@ mod tests {
     }
 
     #[test]
+    fn captured_lab_ping_decodes() {
+        let packet = ControlPacket::decode(b"AMBEDPINGXLX999  ").expect("decode captured ping");
+        assert_eq!(
+            packet,
+            ControlPacket::Ping {
+                callsign: XlxCallsign::new("XLX999").expect("callsign"),
+            }
+        );
+    }
+
+    #[test]
     fn malformed_control_packets_are_rejected() {
         assert_eq!(
             ControlPacket::decode(b"bad"),
