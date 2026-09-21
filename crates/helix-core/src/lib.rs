@@ -87,6 +87,30 @@ mod tests {
     use super::*;
 
     #[test]
+    fn frame_rejects_invalid_shapes() {
+        assert!(matches!(
+            PcmFrame::from_slice(8_000, 0, &[]),
+            Err(FrameError::Empty)
+        ));
+
+        let too_large = [0.0_f32; MAX_FRAME_SAMPLES + 1];
+        assert!(matches!(
+            PcmFrame::from_slice(8_000, 0, &too_large),
+            Err(FrameError::TooLarge)
+        ));
+
+        let one_sample = [0.0_f32; 1];
+        assert!(matches!(
+            PcmFrame::from_slice(7_999, 0, &one_sample),
+            Err(FrameError::InvalidSampleRate)
+        ));
+        assert!(matches!(
+            PcmFrame::from_slice(48_001, 0, &one_sample),
+            Err(FrameError::InvalidSampleRate)
+        ));
+    }
+
+    #[test]
     fn frame_is_fixed_capacity_and_preserves_samples() {
         let src = [0.25_f32, -0.25, 0.5];
         let frame = PcmFrame::from_slice(8_000, 123, &src).expect("valid frame");
