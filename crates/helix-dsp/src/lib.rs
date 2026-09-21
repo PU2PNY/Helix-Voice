@@ -110,8 +110,7 @@ pub const DECIMATOR2_INPUT_RATE_HZ: u32 = 16_000;
 pub const DECIMATOR2_OUTPUT_RATE_HZ: u32 = 8_000;
 pub const DECIMATOR2_TAPS: usize = 129;
 pub const DECIMATOR2_GROUP_DELAY_INPUT_SAMPLES: usize = (DECIMATOR2_TAPS - 1) / 2;
-pub const DECIMATOR2_GROUP_DELAY_OUTPUT_SAMPLES: usize =
-    DECIMATOR2_GROUP_DELAY_INPUT_SAMPLES / 2;
+pub const DECIMATOR2_GROUP_DELAY_OUTPUT_SAMPLES: usize = DECIMATOR2_GROUP_DELAY_INPUT_SAMPLES / 2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResampleError {
@@ -302,8 +301,16 @@ mod tests {
         assert_eq!(required_b, 79);
         let produced_b = decimator.process(&input_b, &mut output_b).expect("b");
         assert_eq!(produced_b, required_b);
-        assert!(output_a[..produced_a].iter().all(|sample| sample.is_finite()));
-        assert!(output_b[..produced_b].iter().all(|sample| sample.is_finite()));
+        assert!(
+            output_a[..produced_a]
+                .iter()
+                .all(|sample| sample.is_finite())
+        );
+        assert!(
+            output_b[..produced_b]
+                .iter()
+                .all(|sample| sample.is_finite())
+        );
     }
 
     #[test]
