@@ -111,7 +111,9 @@ impl XlxCallsign {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ControlPacket {
-    Ping { callsign: XlxCallsign },
+    Ping {
+        callsign: XlxCallsign,
+    },
     Pong,
     OpenStream {
         callsign: XlxCallsign,
@@ -125,7 +127,9 @@ pub enum ControlPacket {
         codec_out: LegacyCodecId,
     },
     Busy,
-    CloseStream { stream_id: u16 },
+    CloseStream {
+        stream_id: u16,
+    },
 }
 
 impl ControlPacket {
