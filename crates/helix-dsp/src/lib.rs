@@ -11,7 +11,10 @@ pub struct Level {
 #[must_use]
 pub fn measure(samples: &[f32]) -> Level {
     if samples.is_empty() {
-        return Level { rms: 0.0, peak: 0.0 };
+        return Level {
+            rms: 0.0,
+            peak: 0.0,
+        };
     }
 
     let mut sum_sq = 0.0_f32;
