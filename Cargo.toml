@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/helix-core",
+    "crates/helix-dsp",
+    "crates/helix-xlx",
+    "crates/helix-daemon",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Helix Voice contributors"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "deny"
+pedantic = "warn"
