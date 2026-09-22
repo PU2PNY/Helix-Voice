@@ -205,3 +205,39 @@ Criado HVC_NEXT.md:
 
 ### Rollback
 baseline/pre-patent-governance-2026-09-22 aponta para 5ce870f1e9171e0fcf9ef11c70f6bacd5fbcc292.
+
+
+## 2026-09-22 — Correção DSP e robustness hardening
+
+### SoftLimiter
+Foi identificado um defeito conceitual: a curva anterior tanh com normalização aumentava sinais pequenos, portanto o "limiter" não era neutro abaixo do limite.
+
+Correção:
+- knee fixo 0,82;
+- saída exatamente 1:1 abaixo do knee;
+- curva exponencial monotônica própria somente acima do knee;
+- sem look-ahead;
+- sem multibanda;
+- sem histórico de ganho;
+- bounded em full scale.
+
+Avaliação da correção: **ÓTIMO para neutralidade abaixo do knee**. THD/qualidade acima do knee ainda precisam de prova específica.
+
+### AGC
+Adicionados testes:
+- convergência de fala sintética baixa para ganho próximo do limite máximo;
+- convergência de fala forte para atenuação;
+- 500 frames de silêncio sem drift do ganho acumulado.
+
+### Robustez de entrada
+Adicionados testes determinísticos:
+- parser XLX: aproximadamente 33 mil inputs mutados/aleatórios, sem panic;
+- HVC packet parser: 20 mil pacotes aleatórios, sem panic.
+
+Isso é hardening SW e **não substitui coverage-guided fuzzing**.
+
+### CI
+Run 35730271351, commit d22e84157c60bd361cbb15360d58134515ce0274: success completo, incluindo artefato estático.
+
+### Patentes
+Criado review específico de AGC/limiter com status técnico UNCERTAIN; topologias específicas encontradas na pesquisa foram adicionadas ao mapa do que evitar.
