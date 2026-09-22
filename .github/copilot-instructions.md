@@ -37,3 +37,10 @@ Patent rule:
 - record per-feature review under docs/patent-reviews/;
 - FTO technical status UNCERTAIN/BLOCKED means no production/commercial promotion;
 - do not claim non-infringement or freedom-to-operate without qualified legal review.
+
+
+Patent register gate:
+- read PROJECT_PATENT_REGISTER.md before implementing/releasing a relevant feature;
+- every new relevant feature starts UNREVIEWED and production-blocked;
+- update the register after patent review;
+- never treat REVIEWED-LOWER-RISK as legal clearance.
