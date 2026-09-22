@@ -101,3 +101,72 @@ Criado antes do HVC:
 
 ### Limites
 Esta etapa prova somente evidência SW. Não existe ainda evidência de qualidade perceptual, comparação com AMBE/Codec2/Opus, interoperabilidade independente, RF, HW ou produção.
+
+
+## 2026-09-22 — Baseline known-good, provas ENV e início da fase de qualidade
+
+### Governança
+Criado PROJECT_KNOWN_GOOD.md para registrar explicitamente o que já foi comprovado e não deve regredir.
+
+PROJECT_START_HERE.md passou a exigir leitura desse baseline antes de mudanças.
+
+Criado rollback:
+baseline/pre-quality-improvement-2026-09-22 → 7cd5a9be4c2468e9c529646151b734ef09c137f4.
+
+### HVC / DSP / laboratório
+Passaram a fazer parte do baseline:
+- resampler anti-alias 16 kHz → 8 kHz;
+- WAV lab;
+- benchmark;
+- headroom 0,98;
+- zero clipping nos lotes testados;
+- PLC bounded com fade-to-silence;
+- loss-roundtrip determinístico;
+- binários estáticos musl;
+- daemon health/self-test fail-closed.
+
+### Evidência de ambiente
+Na WartyWallaby:
+- artefatos foram validados por SHA-256;
+- helix-lab self-test PASS;
+- helix-daemon self-test PASS;
+- HVC executou centenas de vezes mais rápido que tempo real;
+- fala PT-BR/EN e 20 arquivos humanos foram processados sem clipping.
+
+### Qualidade objetiva
+Mini LibriSpeech, 20 arquivos:
+- STOI médio: 0.6014755333;
+- mediana: 0.6114377513;
+- mínimo: 0.3545976839;
+- máximo: 0.7468197758;
+- eSTOI médio: 0.4988678182;
+- distância espectral média: ~12,66 dB.
+
+Conclusão: desempenho/estabilidade estão fortes, porém a inteligibilidade/naturalidade do HVC v0 ainda está abaixo da meta final. A qualidade passa a ser o principal alvo de desenvolvimento.
+
+### PLC
+Em fala humana com perdas simuladas próximas de 1%, 5%, 10% e 20%:
+- zero clipping;
+- sem NaN/Inf;
+- sem instabilidade;
+- comportamento bounded.
+
+### XLXD
+Foi observada passivamente a interface real de controle na VPS de laboratório:
+- UDP 10100;
+- payload AMBEDPINGXLX999;
+- aproximadamente a cada 5 s.
+
+O vetor observado foi incorporado ao teste do parser. Nenhum áudio/configuração do XLXD foi alterado.
+
+### CI
+Run 35626402621, commit 7cd5a9be4c2468e9c529646151b734ef09c137f4:
+- format PASS;
+- clippy PASS;
+- workspace tests PASS;
+- lab self-test PASS;
+- daemon self-test PASS;
+- artefato estático gerado.
+
+### Próxima fase
+Melhorar o HVC com medição objetiva após cada alteração. Nenhuma mudança será mantida se piorar clipping, robustez, CI ou known-good.
