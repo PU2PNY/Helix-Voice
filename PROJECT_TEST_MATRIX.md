@@ -21,6 +21,10 @@ Status: PASS / FAIL / PARCIAL / PENDENTE.
 | T-DSP-001 | DSP-004 | limiter não ultrapassa full scale | success | SW | 7cd5a9b | PASS |
 | T-DSP-002 | DSP-003 | silêncio não provoca runaway do AGC | success | SW | 7cd5a9b | PASS |
 | T-DSP-003 | DSP-001/003/004 | cadeia produz saída finita/bounded | success | SW | 7cd5a9b | PASS |
+| T-DSP-004 | DSP-003 | AGC converge em fala sintética baixa/alta | gain converge ~4,0 e ~0,26 | SW | d22e841 | PASS |
+| T-DSP-005A | DSP-003 | silêncio após ganho acumulado | 500 frames sem drift/runaway | SW | d22e841 | PASS |
+| T-DSP-007A | DSP-004/007 | limiter abaixo do knee | saída exatamente 1:1 | SW | d22e841 | PASS |
+| T-DSP-007B | DSP-004/007 | limiter acima do knee | monotônico, preserva sinal, <= full scale | SW | d22e841 | PASS |
 | T-DSP-008 | DSP-006 | decimator 16k→8k preserva banda de fala | teste de 1 kHz | SW | 7cd5a9b | PASS |
 | T-DSP-009 | DSP-006 | decimator suprime alias fora da banda | teste de 6 kHz | SW | 7cd5a9b | PASS |
 | T-HVC-001 | HVC-002/004 | encode→packet→decode | success | SW | 7cd5a9b | PASS |
@@ -37,8 +41,13 @@ Status: PASS / FAIL / PARCIAL / PENDENTE.
 | T-XLX-001 | XLX-001 | default Disabled | success | SW + ENV | 7cd5a9b | PASS |
 | T-XLX-006 | XLX-002 | parser/encoder controle público | round-trip e validação | SW | 7cd5a9b | PASS |
 | T-XLX-007 | XLX-002 | captura passiva UDP/10100 | AMBEDPINGXLX999 observado | ENV | 7cd5a9b | PASS |
+| T-SEC-002 | SEC-005 | mutação determinística parser XLX | ~33 mil entradas sem panic | SW | d22e841 | PASS |
+| T-SEC-003 | SEC-005 | mutação determinística pacote HVC | 20 mil entradas sem panic | SW | d22e841 | PASS |
+| T-GOV-001 | IP-005/006/007 | scripts/check-governance.sh | patent/known-good gates executados antes do Rust CI | SW | d451a6e+ | PASS |
 
-CI principal desta baseline: GitHub Actions run **35626402621**, conclusão success.
+CI do baseline HVC/ENV: GitHub Actions run **35626402621**, conclusão success.
+
+CI das correções DSP/robustez: run **35730271351**, commit **d22e84157c60bd361cbb15360d58134515ce0274**, conclusão success.
 
 ## Qualidade objetiva HVC
 
@@ -56,10 +65,9 @@ A palavra FAIL acima significa: **o protótipo não atingiu a meta final de qual
 
 | ID | Requisito | Teste necessário | Evidência alvo | Estado |
 |---|---|---|---|---|
-| T-DSP-004 | DSP-003 | convergência AGC fala baixa/alta | SW + ENV | PENDENTE |
-| T-DSP-005 | DSP-003 | ruído/silêncio sem runaway em sessão longa | SW + ENV | PENDENTE |
+| T-DSP-005B | DSP-003 | fala/ruído reais em sessão longa | ENV + áudio | PENDENTE |
 | T-DSP-006 | DSP-003 | pumping/breathing | SW + escuta | PENDENTE |
-| T-DSP-007 | DSP-004/007 | THD/qualidade limiter | SW | PENDENTE |
+| T-DSP-007C | DSP-004/007 | THD/qualidade perceptual acima do knee | SW + áudio | PENDENTE |
 | T-PERF-001 | PERF-001 | CPU/RSS com coleta dedicada | ENV/HW | PARCIAL |
 | T-PERF-002 | PERF-001/002 | latência por estágio | ENV/HW | PENDENTE |
 | T-AUDIO-001 | DSP-005/007 | nível percebido entre caminhos | HW | PENDENTE |
@@ -71,7 +79,7 @@ A palavra FAIL acima significa: **o protótipo não atingiu a meta final de qual
 | T-PNY-001 | PNY-001/004 | boot PU2PNY sem Helix | HW | PENDENTE |
 | T-PNY-002 | PNY-003 | estados UI reais | HW | PENDENTE |
 | T-PNY-003 | PNY-005 | RF real | HW | PENDENTE |
-| T-SEC-001 | SEC-005 | fuzzing parsers | SW | PENDENTE |
+| T-SEC-001 | SEC-005 | coverage-guided fuzzing parsers | SW | PARCIAL — mutation tests PASS, fuzzer dedicado pendente |
 | T-HVC-003 | HVC-002 | segunda implementação independente | SW | PENDENTE |
 | T-HVC-011 | HVC-005 | qualidade melhorada com nova representação/excitação | SW + ENV | EM DESENVOLVIMENTO |
 
