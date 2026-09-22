@@ -9,6 +9,8 @@ Atualizado: 2026-09-22
 - **Branch:** main
 - **Baseline HVC/ENV medido:** 7cd5a9be4c2468e9c529646151b734ef09c137f4
 - **Baseline DSP/robustez validado:** d22e84157c60bd361cbb15360d58134515ce0274
+- **Baseline conhecido-bom consolidado:** 9f09b55c48341a017d4d361236bfcc0fc998e559
+- **Rollback conhecido-bom:** baseline/known-good-2026-09-22
 - **Rollback antes da nova fase de qualidade:** baseline/pre-quality-improvement-2026-09-22
 - **Produção:** não
 - **Integração real XLX026:** PENDENTE
@@ -46,7 +48,9 @@ Detalhes obrigatórios: ver PROJECT_KNOWN_GOOD.md.
 
 Baseline HVC/ENV: run **35626402621**, commit **7cd5a9be4c2468e9c529646151b734ef09c137f4**.
 
-Correções DSP/robustez: run **35730271351**, commit **d22e84157c60bd361cbb15360d58134515ce0274**
+Correções DSP/robustez: run **35730271351**, commit **d22e84157c60bd361cbb15360d58134515ce0274**.
+
+Consolidação canônica: run **35731034369**, commit **9f09b55c48341a017d4d361236bfcc0fc998e559**, success completo
 
 Resultado:
 - rustfmt: PASS;
