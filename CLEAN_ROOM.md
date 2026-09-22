@@ -110,3 +110,28 @@ Names of third-party products or codecs may be mentioned only to identify intero
 ## Escalation
 
 If provenance or licensing is uncertain, do not merge the code. Record the uncertainty and seek qualified legal review when required.
+
+
+## Patent / FTO boundary
+
+Clean-room e autoria independente não são suficientes, por si só, para provar liberdade de operação.
+
+Antes de implementar uma função tecnicamente próxima de uma área patenteada:
+- seguir PATENT_GUARDRAILS.md;
+- pesquisar claims, famílias, jurisdições e status aparente;
+- produzir mapa do que evitar;
+- criar design-around independente;
+- documentar por que a solução Helix é tecnicamente distinta;
+- bloquear produção quando o risco técnico permanecer UNCERTAIN/BLOCKED.
+
+Patentes públicas podem ser consultadas para identificar limites legais/técnicos e estado da técnica, mas embodiments, tabelas, pseudocódigo, constantes ou detalhes específicos não devem ser usados como receita de implementação.
+
+Sempre que possível, a pessoa/IA que analisa claims entrega ao implementador apenas:
+- requisito público;
+- restrições a evitar;
+- fontes de domínio público permitidas;
+- critérios de benchmark.
+
+A implementação deve nascer de princípios públicos de engenharia, literatura científica, standards públicos, experimentos próprios e código com licença compatível.
+
+Objetivos de eficiência — CPU, memória, latência, binário, largura de banda e energia — devem ser medidos. Independência de IP tem prioridade sobre ganho de desempenho.
