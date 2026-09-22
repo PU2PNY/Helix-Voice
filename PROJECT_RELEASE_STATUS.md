@@ -7,7 +7,8 @@ Atualizado: 2026-09-22
 - **Estágio:** DEV / pesquisa
 - **Versão de workspace:** 0.0.1
 - **Branch:** main
-- **Baseline técnico medido:** 7cd5a9be4c2468e9c529646151b734ef09c137f4
+- **Baseline HVC/ENV medido:** 7cd5a9be4c2468e9c529646151b734ef09c137f4
+- **Baseline DSP/robustez validado:** d22e84157c60bd361cbb15360d58134515ce0274
 - **Rollback antes da nova fase de qualidade:** baseline/pre-quality-improvement-2026-09-22
 - **Produção:** não
 - **Integração real XLX026:** PENDENTE
@@ -20,6 +21,8 @@ Atualizado: 2026-09-22
 - workspace Rust com CI;
 - helix-core e validação de frames;
 - helix-dsp básico;
+- AGC com convergência sintética e silêncio sem drift testados;
+- SoftLimiter neutro 1:1 abaixo do knee 0,82 e monotônico acima do knee;
 - resampler anti-alias 16 kHz → 8 kHz;
 - helix-hvc v0 encoder/decoder;
 - bitstream próprio de 12 bytes / 4.800 bit/s;
@@ -41,9 +44,9 @@ Detalhes obrigatórios: ver PROJECT_KNOWN_GOOD.md.
 
 ## Evidência CI atual
 
-Run GitHub Actions: **35626402621**
+Baseline HVC/ENV: run **35626402621**, commit **7cd5a9be4c2468e9c529646151b734ef09c137f4**.
 
-Commit medido: **7cd5a9be4c2468e9c529646151b734ef09c137f4**
+Correções DSP/robustez: run **35730271351**, commit **d22e84157c60bd361cbb15360d58134515ce0274**
 
 Resultado:
 - rustfmt: PASS;
@@ -125,9 +128,9 @@ Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integra
 - modelo de excitação voiced/unvoiced;
 - resolução/representação espectral do HVC;
 - AGC em fala real;
-- limiter de menor distorção;
+- limiter: THD/escuta acima do knee ainda pendentes;
 - jitter buffer;
-- fuzzing;
+- coverage-guided fuzzing (mutation hardening já PASS);
 - métricas de latência por estágio;
 - interface real para backend externo licenciado;
 - processo XLX observe-only completo;
@@ -160,7 +163,8 @@ Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integra
 
 1. concluir pesquisa patent/FTO por candidato e escolher arquitetura clean-slate;
 2. elevar STOI/eSTOI sem quebrar known-good;
-2. repetir os 20 arquivos humanos após cada mudança;
-3. somente aceitar mudança de codec se qualidade melhorar e clipping/estabilidade continuarem PASS;
-4. depois avançar para XLX observe-only completo;
-5. manter produção bloqueada até os gates HW/PROD.
+3. repetir os 20 arquivos humanos após cada mudança;
+4. somente aceitar mudança de codec se qualidade melhorar e clipping/estabilidade continuarem PASS;
+5. medir THD/escuta do limiter e fala real do AGC;
+6. avançar para XLX observe-only completo;
+7. manter produção bloqueada até os gates IP/HW/PROD.
