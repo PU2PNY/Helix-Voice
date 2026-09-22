@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Governance and patent gates
+        run: bash scripts/check-governance.sh
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
