@@ -119,9 +119,9 @@ Para feature com risco de patente, exigir:
 - testes;
 - benchmark relevante;
 - revisão clean-room;
-- status FTO técnico: CLEAR / UNCERTAIN / BLOCKED.
+- status FTO técnico: UNREVIEWED / UNCERTAIN / BLOCKED / REVIEWED-LOWER-RISK. LEGAL-CLEARED é reservado a revisão jurídica qualificada.
 
-**UNCERTAIN ou BLOCKED não pode ir para produção/comercialização sem revisão jurídica especializada.**
+**UNREVIEWED, UNCERTAIN ou BLOCKED não podem ir para produção/comercialização. REVIEWED-LOWER-RISK continua não sendo garantia jurídica de FTO.**
 
 ## Separação de papéis
 
@@ -168,3 +168,10 @@ Toda feature com risco de patente deve ter um arquivo em:
 `docs/patent-reviews/<feature>.md`
 
 Use `docs/PATENT_REVIEW_TEMPLATE.md`.
+
+
+## Registro central
+
+Todo componente relevante deve constar em PROJECT_PATENT_REGISTER.md.
+
+Feature nova inicia como UNREVIEWED e, portanto, bloqueada para produção até que o review proporcional ao risco seja concluído.
