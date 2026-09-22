@@ -16,15 +16,16 @@ Este é o ponto inicial obrigatório para qualquer pessoa ou IA que vá analisar
 1. `PROJECT_MASTER_SPEC.md` — requisitos oficiais.
 2. `PROJECT_RELEASE_STATUS.md` — estado técnico atual.
 3. `PROJECT_TEST_MATRIX.md` — o que foi realmente testado.
-4. `PROJECT_CHANGELOG.md` — evolução e decisões.
-5. `CLEAN_ROOM.md` — regra obrigatória de desenvolvimento independente.
-6. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
-7. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
-8. `ARCHITECTURE.md` — arquitetura técnica.
-9. `SPEC.md` — especificação HVE v0 de baixo nível.
-10. `ROADMAP.md` — sequência planejada.
-11. `THIRD_PARTY.md` — dependências/referências externas.
-12. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
+4. `PROJECT_KNOWN_GOOD.md` — baseline comprovado que não pode regredir.
+5. `PROJECT_CHANGELOG.md` — evolução e decisões.
+6. `CLEAN_ROOM.md` — regra obrigatória de desenvolvimento independente.
+7. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
+8. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
+9. `ARCHITECTURE.md` — arquitetura técnica.
+10. `SPEC.md` — especificação HVE v0 de baixo nível.
+11. `ROADMAP.md` — sequência planejada.
+12. `THIRD_PARTY.md` — dependências/referências externas.
+13. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
 
 ## Regra para qualquer IA
 
@@ -33,7 +34,7 @@ Antes de propor ou executar mudanças:
 1. confirme a branch real;
 2. leia os documentos acima;
 3. leia a implementação atual afetada;
-4. preserve requisitos aprovados e testes PASS;
+4. preserve requisitos aprovados, testes PASS e todos os itens de `PROJECT_KNOWN_GOOD.md`;
 5. não confunda `SW` com `HW`, `ENV` ou `PROD`;
 6. nunca afirme compatibilidade, qualidade ou desempenho sem evidência;
 7. não copie nem reimplemente material proprietário;
@@ -57,3 +58,8 @@ Para objetivos suficientemente definidos, o padrão é execução ponta a ponta 
 4. nunca esconda falhas nem declare conclusão sem evidência correspondente;
 5. solicite ação do usuário somente quando houver bloqueio externo real (credencial, hardware inacessível, autorização exclusiva ou decisão irreversível não inferível);
 6. faça o máximo possível na execução atual; não prometa conclusão futura em segundo plano.
+
+
+## Regra de classificação técnica
+
+Quando houver evidência suficiente, resultados podem ser resumidos como **ÓTIMO / BOM / RUIM / PÉSSIMO**, sempre junto com a medição que justifica a classificação. A classificação nunca substitui PASS/FAIL nem autoriza promover evidência SW para HW/PROD.
