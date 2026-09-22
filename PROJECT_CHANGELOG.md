@@ -170,3 +170,38 @@ Run 35626402621, commit 7cd5a9be4c2468e9c529646151b734ef09c137f4:
 
 ### Próxima fase
 Melhorar o HVC com medição objetiva após cada alteração. Nenhuma mudança será mantida se piorar clipping, robustez, CI ou known-good.
+
+
+## 2026-09-22 — Governança universal de patentes e design-around
+
+### Regra
+Criado PATENT_GUARDRAILS.md e docs/PATENT_REVIEW_TEMPLATE.md.
+
+A regra vale para todo o projeto:
+- pesquisar patentes/estado da técnica antes de implementar função com risco;
+- separar análise de claims da implementação;
+- não usar patente como receita;
+- criar design-around próprio;
+- medir CPU, memória, latência, tamanho e energia quando possível;
+- bloquear produção para status FTO técnico UNCERTAIN/BLOCKED;
+- não declarar ausência de infração como fato jurídico.
+
+### HVC
+Criado docs/patent-reviews/hvc-v0.md.
+
+A pesquisa preliminar encontrou famílias de vocoder relacionadas a temas como pitch/voicing/gain, half-rate coding, interpolation e error protection.
+
+Como o HVC v0 transmite pitch/voicing/energia explicitamente, ele foi congelado como benchmark de pesquisa e recebeu status FTO técnico UNCERTAIN.
+
+Isso não é uma conclusão de infração. É uma decisão conservadora de engenharia.
+
+Criado HVC_NEXT.md:
+- próxima geração clean-slate;
+- sem pitch lag explícito;
+- sem voiced flag explícito;
+- sem harmonic magnitude vector/MBE-like map;
+- sem framing/codebooks AMBE-compatible;
+- cada candidato exige patent review próprio antes de implementação/promoção.
+
+### Rollback
+baseline/pre-patent-governance-2026-09-22 aponta para 5ce870f1e9171e0fcf9ef11c70f6bacd5fbcc292.
