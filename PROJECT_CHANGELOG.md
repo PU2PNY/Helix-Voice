@@ -241,3 +241,27 @@ Run 35730271351, commit d22e84157c60bd361cbb15360d58134515ce0274: success comple
 
 ### Patentes
 Criado review específico de AGC/limiter com status técnico UNCERTAIN; topologias específicas encontradas na pesquisa foram adicionadas ao mapa do que evitar.
+
+
+## 2026-09-22 — Baseline conhecido-bom consolidado
+
+Após:
+- correção do SoftLimiter;
+- testes adicionais de AGC;
+- hardening dos parsers;
+- governança universal de patentes;
+- registro central de FTO técnico;
+- reviews preliminares HVC, DSP level control, Decimator2 e PLC;
+- gate automático de governança/patentes no CI;
+
+o estado canônico validado foi congelado em:
+
+baseline/known-good-2026-09-22 → 9f09b55c48341a017d4d361236bfcc0fc998e559
+
+CI de consolidação:
+- run 35731034369;
+- conclusão success.
+
+O artefato do código DSP/robustez no commit d22e84157c60bd361cbb15360d58134515ce0274 também foi transferido para a WartyWallaby, conferido por SHA-256 e executado com helix-lab/helix-daemon self-tests PASS.
+
+Esse baseline é o ponto obrigatório de comparação para regressões futuras.
