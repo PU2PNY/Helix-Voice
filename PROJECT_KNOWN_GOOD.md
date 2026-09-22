@@ -42,14 +42,20 @@ A escala é contextual e deve vir acompanhada do número/teste que a sustenta.
 | XLXD control framing | SW + ENV | parser/encoder + captura real AMBEDPINGXLX999 | ÓTIMO para a fronteira observada |
 | XLX default safety | SW + ENV | Disabled/fail-closed | ÓTIMO |
 | Fala humana LibriSpeech | ENV | 20 arquivos, zero clipping | ÓTIMO como cobertura de teste |
-| Patent governance | DOC | PATENT_GUARDRAILS + per-feature review mandatory | ÓTIMO como controle de processo |
+| Patent governance | DOC + CI | PATENT_GUARDRAILS + register + automatic gate | ÓTIMO como controle de processo |
+| AGC synthetic convergence | SW | baixo nível → ~4,0; alto → ~0,26 | BOM/ÓTIMO para propriedade testada |
+| AGC silence state | SW | 500 frames de silêncio sem drift | ÓTIMO |
+| SoftLimiter abaixo do knee | SW | exatamente 1:1 até 0,82 | ÓTIMO |
+| SoftLimiter peak behavior | SW | monotônico, sinal preservado, bounded | BOM; THD/escuta ainda pendentes |
+| Parser mutation robustness | SW | ~33k XLX + 20k HVC sem panic | BOM; coverage-guided fuzzing pendente |
 | Inteligibilidade HVC v0 | ENV, STOI | média 0,601; mínimo 0,355; máximo 0,747 | RUIM para a meta final |
 | eSTOI HVC v0 | ENV | média 0,499 | RUIM para a meta final |
 | Distância espectral HVC v0 | ENV | média ~12,66 dB no lote humano | RUIM para a meta final |
 
 ## Evidências principais
 
-- CI atual do baseline: run 35626402621, commit 7cd5a9be4c2468e9c529646151b734ef09c137f4, conclusão success.
+- CI do baseline ENV: run 35626402621, commit 7cd5a9be4c2468e9c529646151b734ef09c137f4, success.
+- CI das correções DSP/robustez: run 35730271351, commit d22e84157c60bd361cbb15360d58134515ce0274, success.
 - Artefato estático deste run foi validado na WartyWallaby por SHA-256 e self-tests.
 - Corpus humano: Mini LibriSpeech/LibriSpeech, material aberto para teste.
 - Avaliação objetiva observada em 20 arquivos: STOI médio 0.6014755333, eSTOI médio 0.4988678182.
@@ -75,6 +81,7 @@ Não tratar como aprovado:
 - pre-HVC-v0: baseline/pre-hvc-v0-2026-09-21
 - pre-audio-lab: baseline/pre-audio-lab-2026-09-21
 - pre-quality-improvement: baseline/pre-quality-improvement-2026-09-22
+- pre-patent-governance: baseline/pre-patent-governance-2026-09-22
 
 Ao iniciar trabalho novo, leia este arquivo junto com PROJECT_RELEASE_STATUS.md e PROJECT_TEST_MATRIX.md.
 
