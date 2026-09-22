@@ -28,3 +28,19 @@ The HVC v0 implementation was written independently. These public sources were u
 - M17 specification — https://spec.m17project.org/
 
 The HVC packet layout, quantization choices, version byte, CRC placement and synthetic canonical test vector are defined by Helix in `HVC_SPEC.md` / `HVC_TEST_VECTORS.md`.
+
+
+## Patent/FTO research
+
+Patent databases and official patent-office guidance are research sources, not software dependencies.
+
+Required sources when applicable:
+- WIPO PATENTSCOPE / WIPO FTO guidance;
+- EPO Espacenet;
+- USPTO;
+- INPI Brasil;
+- additional national offices for intended deployment/commercialization territories.
+
+Per-feature results must be recorded under docs/patent-reviews/ using docs/PATENT_REVIEW_TEMPLATE.md.
+
+A negative search does not establish freedom to operate.
