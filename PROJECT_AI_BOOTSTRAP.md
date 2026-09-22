@@ -30,3 +30,18 @@ Quando o objetivo estiver suficientemente definido, execute a tarefa de ponta a 
 - não declare "pronto", "completo", "compatível", "melhor" ou "produção" sem a evidência exigida;
 - peça intervenção humana somente para bloqueios realmente externos, como credenciais indisponíveis, hardware físico inacessível, autorização exclusiva ou decisão irreversível que não possa ser inferida com segurança;
 - conclua o máximo possível na execução atual e nunca prometa trabalho em segundo plano que não esteja efetivamente sendo executado.
+
+
+## Regra universal de patentes e design independente
+
+Antes de implementar qualquer função que possa tocar patente, codec fechado, algoritmo proprietário ou técnica de terceiros:
+1. leia PATENT_GUARDRAILS.md;
+2. pesquise estado da técnica e reivindicações relevantes em fontes oficiais;
+3. documente o que deve ser evitado;
+4. projete a solução Helix do zero, por princípios públicos de engenharia;
+5. prefira arquitetura/representação/framing/controle diferentes quando tecnicamente viável;
+6. meça CPU, memória, latência, tamanho e energia quando comparável;
+7. não declare FTO ou ausência de infração como fato jurídico;
+8. status técnico UNCERTAIN/BLOCKED impede produção/comercialização até design-around adicional ou revisão jurídica especializada.
+
+Esta regra vale para o projeto inteiro.
