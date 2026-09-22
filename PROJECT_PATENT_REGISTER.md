@@ -25,7 +25,7 @@ Por padrão, qualquer feature nova começa em **UNREVIEWED**.
 | HVC next | próxima arquitetura clean-slate | HVC_NEXT.md + reviews futuros | UNREVIEWED | BLOQUEADA |
 | AdaptiveGain | controle de nível por RMS | docs/patent-reviews/dsp-level-control.md | UNCERTAIN | BLOQUEADA |
 | SoftLimiter | limitação de pico sem look-ahead | docs/patent-reviews/dsp-level-control.md | UNCERTAIN | BLOQUEADA |
-| Decimator2 | 16 kHz → 8 kHz windowed-sinc FIR | review pendente | UNREVIEWED | BLOQUEADA |
+| Decimator2 | 16 kHz → 8 kHz windowed-sinc FIR | docs/patent-reviews/decimator2.md | REVIEWED-LOWER-RISK | revisão jurídica ainda necessária antes de claim comercial |
 | HVC PLC | concealment por repetição atenuada bounded | review pendente | UNREVIEWED | BLOQUEADA |
 | CRC-8/frame validation | integridade de pacote | review de utilidade pendente | UNREVIEWED | BLOQUEADA |
 | XLXD control adapter | interoperabilidade pública | review protocolo/IP pendente | UNREVIEWED | BLOQUEADA |
