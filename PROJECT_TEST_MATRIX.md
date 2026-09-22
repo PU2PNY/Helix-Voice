@@ -1,59 +1,80 @@
 # PROJECT_TEST_MATRIX — Helix Voice
 
-Legenda de evidência:
+Legenda:
 - **DOC** documentação/código verificado;
 - **SW** teste automatizado/local;
 - **ENV** staging/VPS reproduzível;
 - **HW** hardware real;
 - **PROD** produção.
 
-Status permitidos: PASS / FAIL / PARCIAL / PENDENTE.
+Status: PASS / FAIL / PARCIAL / PENDENTE.
 
 ## Baseline automatizada
 
-| ID | Requisito | Teste | Esperado | Observado | Evidência | Ambiente | Commit | Estado |
-|---|---|---|---|---|---|---|---|---|
-| T-QA-001 | REL-002 | `cargo fmt --all -- --check` | sem diff | GitHub Actions success | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-QA-002 | SEC-001 / QA | `cargo clippy --workspace --all-targets -- -D warnings` | zero warnings/error | GitHub Actions success | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-QA-003 | TEST-003 | `cargo test --workspace` | todos unitários passam | GitHub Actions success | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-CORE-001 | CORE-001/003 | `frame_is_fixed_capacity_and_preserves_samples` | preserva amostras/rate/timestamp | passou dentro de cargo test | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-DSP-001 | DSP-004 | `limiter_never_exceeds_full_scale` | abs(sample) <= 1.0 | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-DSP-002 | DSP-003 | `agc_does_not_raise_digital_silence` | silêncio permanece zero, gain 1.0 | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-DSP-003 | DSP-001/003/004 | `chain_processes_fixed_frame` | cadeia produz RMS > 0 e pico <= 1 | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-XLX-001 | XLX-001 | `integration_is_disabled_by_default` | modo padrão Disabled | passou | SW | ubuntu-latest | 62ee9b8 | PASS |
-| T-HVC-001 | HVC-002/004 | HVC encode→packet→decode + CRC + bitrate + pitch | caminho v0 funcional e limitado | passou no Rust CI | SW | ubuntu-latest | a640072 | PASS |
-| T-HVC-002 | HVC-002/004 | `silence_has_stable_reference_vector` | vetor canônico permanece bit-exato | passou | SW | ubuntu-latest | a640072 | PASS |
+| ID | Requisito | Teste/evidência | Observado | Evidência | Commit | Estado |
+|---|---|---|---|---|---|---|
+| T-QA-001 | REL-002 | cargo fmt --all -- --check | success | SW | 7cd5a9b | PASS |
+| T-QA-002 | SEC-001 / QA | cargo clippy --workspace --all-targets -- -D warnings | success | SW | 7cd5a9b | PASS |
+| T-QA-003 | TEST-003 | cargo test --workspace | success | SW | 7cd5a9b | PASS |
+| T-CORE-001 | CORE-001/003 | frame fixo preserva samples/rate/timestamp | success | SW | 7cd5a9b | PASS |
+| T-CORE-002 | CORE-002 | empty/too-large/sample-rate inválido | rejeitados | SW | 7cd5a9b | PASS |
+| T-DSP-001 | DSP-004 | limiter não ultrapassa full scale | success | SW | 7cd5a9b | PASS |
+| T-DSP-002 | DSP-003 | silêncio não provoca runaway do AGC | success | SW | 7cd5a9b | PASS |
+| T-DSP-003 | DSP-001/003/004 | cadeia produz saída finita/bounded | success | SW | 7cd5a9b | PASS |
+| T-DSP-008 | DSP-006 | decimator 16k→8k preserva banda de fala | teste de 1 kHz | SW | 7cd5a9b | PASS |
+| T-DSP-009 | DSP-006 | decimator suprime alias fora da banda | teste de 6 kHz | SW | 7cd5a9b | PASS |
+| T-HVC-001 | HVC-002/004 | encode→packet→decode | success | SW | 7cd5a9b | PASS |
+| T-HVC-002 | HVC-002/004 | silêncio com vetor canônico | bit-exato | SW | 7cd5a9b | PASS |
+| T-HVC-007 | HVC-002/004 | corrupção de 1 bit nas 96 posições | todas rejeitadas | SW | 7cd5a9b | PASS |
+| T-HVC-008 | HVC-005 | stream stateful prolongado | finito/bounded | SW | 7cd5a9b | PASS |
+| T-HVC-009 | HVC-005 | headroom decoder | pico <= 0,98 | SW + ENV | 7cd5a9b | PASS |
+| T-HVC-010 | HVC-005 | PLC bounded/fade | converge para silêncio | SW | 7cd5a9b | PASS |
+| T-LAB-001 | TEST-001 | WAV read/write + roundtrip | success | SW + ENV | 7cd5a9b | PASS |
+| T-LAB-002 | PERF-001 | benchmark HVC | centenas x realtime | ENV | 7cd5a9b | PASS |
+| T-DAEMON-001 | DEP/REL | --self-test | PASS, rede desativada | SW + ENV | 7cd5a9b | PASS |
+| T-DAEMON-002 | DEP/REL | --health | ready, xlx/network disabled | ENV | 7cd5a9b | PASS |
+| T-ART-001 | REL | SHA-256 artefatos musl | confere byte-a-byte | ENV | 7cd5a9b | PASS |
+| T-XLX-001 | XLX-001 | default Disabled | success | SW + ENV | 7cd5a9b | PASS |
+| T-XLX-006 | XLX-002 | parser/encoder controle público | round-trip e validação | SW | 7cd5a9b | PASS |
+| T-XLX-007 | XLX-002 | captura passiva UDP/10100 | AMBEDPINGXLX999 observado | ENV | 7cd5a9b | PASS |
 
-Evidência CI da baseline original: GitHub Actions **Rust CI**, run `35601721908`, conclusão `success`.
+CI principal desta baseline: GitHub Actions run **35626402621**, conclusão success.
 
-Evidência CI HVC v0: GitHub Actions **Rust CI**, run `35615775362`, conclusão `success` em format, clippy e tests.
+## Qualidade objetiva HVC
 
-## Testes de comportamento ainda necessários
+| ID | Requisito | Teste | Resultado | Evidência | Estado |
+|---|---|---|---|---|---|
+| T-AUDIO-003 | HVC-005 | 20 arquivos Mini LibriSpeech | 0 clipping | ENV | PASS |
+| T-AUDIO-004 | HVC-005 | STOI em 20 arquivos | média 0,601; min 0,355; max 0,747 | ENV | FAIL para meta final |
+| T-AUDIO-005 | HVC-005 | eSTOI em 20 arquivos | média 0,499 | ENV | FAIL para meta final |
+| T-AUDIO-006 | HVC-005 | distância espectral por 8 bandas | média ~12,66 dB | ENV | FAIL para meta final |
+| T-HVC-006 | HVC-005 | PLC com ~1/5/10/20% de perda | estável, zero clipping | SW + ENV | PARCIAL |
+
+A palavra FAIL acima significa: **o protótipo não atingiu a meta final de qualidade**, não que o programa tenha crashado.
+
+## Ainda necessários
 
 | ID | Requisito | Teste necessário | Evidência alvo | Estado |
 |---|---|---|---|---|
-| T-CORE-002 | CORE-002 | rejeitar empty/too-large/sample-rate inválido | SW | PENDENTE |
-| T-DSP-004 | DSP-003 | convergência do AGC para fala baixa/alta | SW | PENDENTE |
-| T-DSP-005 | DSP-003 | ruído/silêncio não provocar runaway gain | SW + áudio | PENDENTE |
-| T-DSP-006 | DSP-003 | pumping/breathing em sinais modulados | SW + escuta | PENDENTE |
-| T-DSP-007 | DSP-004/007 | THD/qualidade do limiter | SW | PENDENTE |
-| T-PERF-001 | PERF-001 | CPU e RSS idle/active | ENV/HW | PENDENTE |
-| T-PERF-002 | PERF-001/002 | latência end-to-end por estágio | ENV/HW | PENDENTE |
+| T-DSP-004 | DSP-003 | convergência AGC fala baixa/alta | SW + ENV | PENDENTE |
+| T-DSP-005 | DSP-003 | ruído/silêncio sem runaway em sessão longa | SW + ENV | PENDENTE |
+| T-DSP-006 | DSP-003 | pumping/breathing | SW + escuta | PENDENTE |
+| T-DSP-007 | DSP-004/007 | THD/qualidade limiter | SW | PENDENTE |
+| T-PERF-001 | PERF-001 | CPU/RSS com coleta dedicada | ENV/HW | PARCIAL |
+| T-PERF-002 | PERF-001/002 | latência por estágio | ENV/HW | PENDENTE |
 | T-AUDIO-001 | DSP-005/007 | nível percebido entre caminhos | HW | PENDENTE |
-| T-AUDIO-002 | TEST-004 | A/B ou ABX level-matched | HW | PENDENTE |
-| T-XLX-002 | XLX-002 | observe-only sem alterar áudio | ENV | PENDENTE |
+| T-AUDIO-002 | TEST-004 | A/B ou ABX level-matched | HW/humano | PENDENTE |
+| T-XLX-002 | XLX-002 | processo observe-only completo sem alterar áudio | ENV | PARCIAL |
 | T-XLX-003 | XLX-005 | soak 24 h | ENV | PENDENTE |
 | T-XLX-004 | XLX-005 | rollback determinístico | ENV | PENDENTE |
-| T-XLX-005 | XLX-005 | falha Helix não derruba/corrompe XLXD | ENV | PENDENTE |
+| T-XLX-005 | XLX-005 | falha Helix não afeta XLXD | ENV | PENDENTE |
 | T-PNY-001 | PNY-001/004 | boot PU2PNY sem Helix | HW | PENDENTE |
-| T-PNY-002 | PNY-003 | estados UI refletem backend real | HW | PENDENTE |
+| T-PNY-002 | PNY-003 | estados UI reais | HW | PENDENTE |
 | T-PNY-003 | PNY-005 | RF real | HW | PENDENTE |
-| T-SEC-001 | SEC-005 | fuzzing de parsers | SW | PENDENTE |
-| T-HVC-003 | HVC-002 | segunda implementação independente interpreta os vetores/bitstream v0 | SW | PENDENTE |
-| T-HVC-004 | HVC-005 / TEST-004 | fala real + métricas + A/B/ABX level-matched | SW + HW | PENDENTE |
-| T-HVC-005 | HVC-005 / PERF-001 | CPU/RSS/latência encode/decode no alvo | ENV/HW | PENDENTE |
-| T-HVC-006 | HVC-005 | perda de pacote/FEC/PLC e degradação controlada | SW + ENV/HW | PENDENTE |
+| T-SEC-001 | SEC-005 | fuzzing parsers | SW | PENDENTE |
+| T-HVC-003 | HVC-002 | segunda implementação independente | SW | PENDENTE |
+| T-HVC-011 | HVC-005 | qualidade melhorada com nova representação/excitação | SW + ENV | EM DESENVOLVIMENTO |
 
 ## Regra
 
-Nenhum item PENDENTE acima pode ser descrito como funcional, compatível ou aprovado apenas porque a arquitetura o prevê.
+Nenhum item PENDENTE/PARCIAL pode ser promovido por inferência. Mudanças no HVC só são aceitas se melhorarem a evidência de qualidade sem regredir itens PASS de PROJECT_KNOWN_GOOD.md.
