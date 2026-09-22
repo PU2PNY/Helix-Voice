@@ -86,22 +86,31 @@ impl AdaptiveGain {
 
 #[derive(Debug, Clone, Copy)]
 pub struct SoftLimiter {
-    drive: f32,
+    knee: f32,
 }
 
 impl Default for SoftLimiter {
     fn default() -> Self {
-        Self { drive: 1.5 }
+        Self { knee: 0.82 }
     }
 }
 
 impl SoftLimiter {
     pub fn process(&self, samples: &mut [f32]) {
-        let normalizer = self.drive.tanh();
+        let knee = self.knee.clamp(0.5, 0.99);
+        let headroom = 1.0 - knee;
 
         for sample in samples {
-            *sample = (*sample * self.drive).tanh() / normalizer;
-            *sample = sample.clamp(-1.0, 1.0);
+            let sign = sample.signum();
+            let magnitude = sample.abs();
+
+            if magnitude <= knee {
+                continue;
+            }
+
+            let excess = magnitude - knee;
+            let limited = 1.0 - headroom * (-excess / headroom).exp();
+            *sample = sign * limited.min(1.0);
         }
     }
 }
@@ -232,10 +241,74 @@ mod tests {
     use super::*;
 
     #[test]
+    fn limiter_is_unity_below_knee() {
+        let original = [-0.8_f32, -0.25, 0.0, 0.1, 0.5, 0.8];
+        let mut samples = original;
+        SoftLimiter::default().process(&mut samples);
+        assert_eq!(samples, original);
+    }
+
+    #[test]
+    fn limiter_is_monotonic_and_preserves_sign() {
+        let mut samples = [0.82_f32, 0.9, 1.0, 1.5, 3.0];
+        SoftLimiter::default().process(&mut samples);
+
+        assert!(samples.iter().all(|sample| *sample >= 0.0 && *sample <= 1.0));
+        assert!(samples.windows(2).all(|pair| pair[0] <= pair[1]));
+
+        let mut negative = [-0.9_f32, -1.5, -3.0];
+        SoftLimiter::default().process(&mut negative);
+        assert!(negative.iter().all(|sample| *sample <= 0.0 && *sample >= -1.0));
+    }
+
+    #[test]
     fn limiter_never_exceeds_full_scale() {
         let mut samples = [3.0_f32, -3.0, 0.5];
         SoftLimiter::default().process(&mut samples);
         assert!(samples.iter().all(|sample| sample.abs() <= 1.0));
+    }
+
+    #[test]
+    fn agc_converges_on_low_and_high_speech() {
+        let mut low_agc = AdaptiveGain::default();
+        for _ in 0..80 {
+            let mut low = [0.02_f32; 160];
+            low_agc.process(&mut low);
+        }
+        assert!(
+            (3.8..=4.0).contains(&low_agc.current_gain()),
+            "gain={}",
+            low_agc.current_gain()
+        );
+
+        let mut high_agc = AdaptiveGain::default();
+        for _ in 0..20 {
+            let mut high = [0.5_f32; 160];
+            high_agc.process(&mut high);
+        }
+        assert!(
+            (0.25..=0.27).contains(&high_agc.current_gain()),
+            "gain={}",
+            high_agc.current_gain()
+        );
+    }
+
+    #[test]
+    fn agc_silence_does_not_change_accumulated_gain() {
+        let mut agc = AdaptiveGain::default();
+        for _ in 0..60 {
+            let mut low = [0.02_f32; 160];
+            agc.process(&mut low);
+        }
+        let before = agc.current_gain();
+
+        for _ in 0..500 {
+            let mut silence = [0.0_f32; 160];
+            agc.process(&mut silence);
+            assert!(silence.iter().all(|sample| *sample == 0.0));
+        }
+
+        assert_eq!(agc.current_gain(), before);
     }
 
     #[test]
