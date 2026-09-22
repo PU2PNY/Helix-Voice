@@ -56,6 +56,8 @@ A escala é contextual e deve vir acompanhada do número/teste que a sustenta.
 
 - CI do baseline ENV: run 35626402621, commit 7cd5a9be4c2468e9c529646151b734ef09c137f4, success.
 - CI das correções DSP/robustez: run 35730271351, commit d22e84157c60bd361cbb15360d58134515ce0274, success.
+- CI canônico após consolidação documental: run 35731034369, commit 9f09b55c48341a017d4d361236bfcc0fc998e559, success.
+- Artefatos do baseline de código d22e841 foram validados na WartyWallaby por SHA-256 e self-tests.
 - Artefato estático deste run foi validado na WartyWallaby por SHA-256 e self-tests.
 - Corpus humano: Mini LibriSpeech/LibriSpeech, material aberto para teste.
 - Avaliação objetiva observada em 20 arquivos: STOI médio 0.6014755333, eSTOI médio 0.4988678182.
@@ -82,6 +84,7 @@ Não tratar como aprovado:
 - pre-audio-lab: baseline/pre-audio-lab-2026-09-21
 - pre-quality-improvement: baseline/pre-quality-improvement-2026-09-22
 - pre-patent-governance: baseline/pre-patent-governance-2026-09-22
+- known-good consolidado: baseline/known-good-2026-09-22 → 9f09b55c48341a017d4d361236bfcc0fc998e559
 
 Ao iniciar trabalho novo, leia este arquivo junto com PROJECT_RELEASE_STATUS.md e PROJECT_TEST_MATRIX.md.
 
