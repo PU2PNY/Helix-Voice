@@ -323,6 +323,25 @@ mod tests {
     }
 
     #[test]
+    fn random_control_bytes_never_panic() {
+        let mut state = 0x58_4c_58_30_u32;
+
+        for length in 0..=32_usize {
+            for _ in 0..1_000 {
+                let mut bytes = [0_u8; 32];
+                for byte in &mut bytes[..length] {
+                    state ^= state << 13;
+                    state ^= state >> 17;
+                    state ^= state << 5;
+                    *byte = state as u8;
+                }
+
+                let _ = ControlPacket::decode(&bytes[..length]);
+            }
+        }
+    }
+
+    #[test]
     fn malformed_control_packets_are_rejected() {
         assert_eq!(
             ControlPacket::decode(b"bad"),
