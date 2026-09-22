@@ -1,95 +1,163 @@
 # PROJECT_RELEASE_STATUS — Helix Voice
 
-Atualizado: 2026-09-21
+Atualizado: 2026-09-22
 
 ## Estado atual
 
 - **Estágio:** DEV / pesquisa
-- **Versão de workspace:** `0.0.1`
-- **Branch de trabalho identificada:** `main`
-- **Baseline de código auditada:** `62ee9b83ee72ff7ba721413f9f3bdd56f620c0c5`
-- **Rollback da baseline:** `baseline/pre-governance-2026-09-21`
-- **Releases GitHub:** nenhuma encontrada na auditoria
-- **Issues abertas:** nenhuma encontrada
-- **PRs:** não verificado por endpoint dedicado; nenhuma apareceu na busca de issues/PRs acessível
-- **Tags:** não verificado pelo conector disponível
+- **Versão de workspace:** 0.0.1
+- **Branch:** main
+- **Baseline técnico medido:** 7cd5a9be4c2468e9c529646151b734ef09c137f4
+- **Rollback antes da nova fase de qualidade:** baseline/pre-quality-improvement-2026-09-22
 - **Produção:** não
 - **Integração real XLX026:** PENDENTE
 - **Integração real PU2PNY-OS:** PENDENTE
-- **HVC:** v0 experimental implementado em SW; bitstream próprio de pesquisa, ainda sem validação auditiva/HW/interoperabilidade independente
+- **HVC:** v0 experimental funcional em SW/ENV; qualidade objetiva ainda abaixo da meta final
 
-## Concluído com evidência SW
+## Known-good / preservar
 
-- workspace Rust criado;
-- `helix-core`;
-- frame PCM fixo;
-- validação básica de frame;
-- tipagem de codec;
-- `helix-dsp`;
-- medidor RMS/pico;
-- protótipo de AdaptiveGain;
-- protótipo de SoftLimiter;
-- `helix-xlx` com modo padrão `Disabled`;
-- `helix-daemon` inicial;
-- CI com rustfmt, clippy e cargo test;
-- CI final da baseline passou no run `35601721908`;
-- documentação clean-room, arquitetura, segurança e integrações;
-- governança persistente criada;
-- `helix-hvc` v0: encoder, bitstream fixo próprio, decoder, CRC-8 e vetor sintético canônico;
-- HVC v0: 8 kHz mono, 20 ms, 12 bytes por frame, 4.800 bit/s de payload;
-- Rust CI do HVC passou no run `35615775362` (format + clippy + tests).
+- workspace Rust com CI;
+- helix-core e validação de frames;
+- helix-dsp básico;
+- resampler anti-alias 16 kHz → 8 kHz;
+- helix-hvc v0 encoder/decoder;
+- bitstream próprio de 12 bytes / 4.800 bit/s;
+- CRC-8 e rejeição de corrupção;
+- vetor canônico de silêncio;
+- decoder stateful;
+- headroom de saída 0,98;
+- PLC bounded com fade-to-silence;
+- WAV laboratory;
+- benchmark sintético;
+- avaliação de fala humana;
+- helix-daemon com --health e --self-test;
+- XLX fail-closed/Disabled por padrão;
+- parser/encoder do protocolo público de controle XLXD;
+- binários estáticos Linux x86_64-musl;
+- validação SHA-256 na WartyWallaby.
 
-## Parcial / protótipo
+Detalhes obrigatórios: ver PROJECT_KNOWN_GOOD.md.
 
-- AGC: algoritmo inicial existe, mas qualidade perceptual, constantes, tempo de ataque/release e comportamento em fala real ainda não foram validados.
-- Limiter: propriedade de não ultrapassar full scale tem teste; distorção/qualidade ainda não.
-- XLX adapter: apenas estrutura/configuração; não há transporte XLXD implementado.
-- Daemon: inicialização/estado básico; não é daemon de áudio funcional.
-- Audio quality framework: documentação existe; métricas reais ainda não coletadas.
-- HVC v0: caminho encode→packet→decode existe e está coberto por testes SW; qualidade perceptual, robustez de canal e interoperabilidade independente ainda não foram validadas.
+## Evidência CI atual
 
-## Pendente
+Run GitHub Actions: **35626402621**
 
-- DC blocker / HPF;
-- compressor;
-- limiter aprimorado;
-- resampler;
+Commit medido: **7cd5a9be4c2468e9c529646151b734ef09c137f4**
+
+Resultado:
+- rustfmt: PASS;
+- clippy -D warnings: PASS;
+- cargo test workspace: PASS;
+- helix-lab self-test: PASS;
+- helix-daemon self-test: PASS;
+- artefato estático: gerado e validado.
+
+Avaliação: **ÓTIMO** para integridade SW/CI.
+
+## Evidência ENV — WartyWallaby
+
+### Integridade de artefatos
+- helix-lab SHA-256: confere;
+- helix-daemon SHA-256: confere;
+- self-tests: PASS;
+- daemon health: ready;
+- network: disabled;
+- XLX: disabled.
+
+Avaliação: **ÓTIMO**.
+
+### Desempenho
+Em execuções do HVC na VPS de aproximadamente 1 GiB:
+- centenas de vezes mais rápido que tempo real;
+- lotes de fala humana tipicamente entre ~300x e ~680x em execuções registradas;
+- sem dependência de runtime dinâmico no artefato musl.
+
+Avaliação: **ÓTIMO** para desempenho de software no host testado.
+
+### Clipping/headroom
+Após correção de normalização:
+- fala PT-BR sintética: 0 clipping;
+- fala EN sintética: 0 clipping;
+- 20 arquivos humanos Mini LibriSpeech: 0 clipping;
+- pico máximo limitado a aproximadamente 0,98.
+
+Avaliação: **ÓTIMO**.
+
+### Fala humana / qualidade objetiva
+Lote: 20 arquivos Mini LibriSpeech.
+
+Resultados:
+- STOI médio: 0.6014755333;
+- STOI mediano: 0.6114377513;
+- STOI mínimo: 0.3545976839;
+- STOI máximo: 0.7468197758;
+- eSTOI médio: 0.4988678182;
+- distância espectral média observada: ~12,66 dB.
+
+Avaliação: **RUIM para a meta final de áudio impecável**. Isso é agora o principal alvo técnico.
+
+### PLC / perdas simuladas em fala humana
+Lotes avaliados em aproximadamente 1%, 5%, 10% e 20% de perda:
+- zero clipping;
+- saída finita/bounded;
+- degradação não causou instabilidade;
+- ~21% de perda observada no lote de 20% continuou processando sem falha.
+
+Avaliação:
+- estabilidade: **ÓTIMO**;
+- qualidade perceptual sob perda: **BOM/INCONCLUSIVO** até comparação objetiva específica de perda.
+
+### XLXD de laboratório
+Captura passiva real na WartyWallaby:
+- UDP 10100;
+- payload observado: AMBEDPINGXLX999;
+- intervalo aproximado: 5 s;
+- zero alteração de áudio/configuração do XLXD.
+
+O vetor capturado foi incorporado aos testes do parser XLX.
+
+Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integração de áudio/transcoding.
+
+## Parcial / precisa melhorar
+
+- HVC naturalidade/inteligibilidade;
+- modelo de excitação voiced/unvoiced;
+- resolução/representação espectral do HVC;
+- AGC em fala real;
+- limiter de menor distorção;
 - jitter buffer;
-- PLC;
-- perfis por stream;
-- WAV lab;
-- benchmark CPU/RSS/latência;
 - fuzzing;
-- adapter XLXD observe-only;
-- interface para backend externo licenciado;
-- soak 24 h;
-- A/B/ABX;
-- integração de laboratório no XLX026;
-- serviço systemd no PU2PNY-OS;
-- testes em Raspberry Pi;
-- testes RF reais;
-- análise final de licenças de Codec2/M17/Opus/RNNoise/RADE;
-- escolha da licença do próprio Helix;
-- implementação HVC independente de referência/conformidade;
-- avaliação objetiva e auditiva do HVC com fala real legalmente utilizável;
+- métricas de latência por estágio;
+- interface real para backend externo licenciado;
+- processo XLX observe-only completo;
+- segunda implementação HVC independente.
+
+## Pendente por exigir evidência adicional
+
+- A/B ou ABX humano level-matched;
+- comparação controlada com codecs de referência;
+- soak de 24 h em tempo real;
+- Raspberry Pi;
+- rádio/RF real;
+- PU2PNY-OS;
+- XLX026 produção;
+- licença final do projeto;
+- interoperabilidade HVC independente.
 
 ## Bloqueadores de produção
 
-1. ausência de transcoding real;
-2. ausência de testes ENV/HW/PROD;
-3. ausência de métricas de desempenho;
-4. ausência de testes auditivos;
-5. ausência de interface real XLXD;
-6. licença final do projeto ainda não definida;
-7. HVC ainda sem evidência auditiva, HW e implementação independente interoperável.
+1. qualidade HVC ainda abaixo da meta;
+2. ausência de ABX humano;
+3. ausência de segunda implementação HVC;
+4. ausência de integração de áudio XLX com backend autorizado;
+5. ausência de 24 h soak;
+6. ausência de evidência HW/RF;
+7. licença final ainda não definida.
 
-## Próxima sequência recomendada
+## Próxima prioridade
 
-1. estabilizar Phase 1 DSP laboratory;
-2. criar testes sintéticos mais rigorosos do AGC/limiter;
-3. adicionar benchmark e relatório de nível/clipping;
-4. implementar ferramenta WAV offline;
-5. somente então iniciar XLX observe-only;
-6. adicionar laboratório WAV/corpus legal para HVC e métricas objetivas;
-7. implementar uma segunda implementação de conformidade do HVC;
-8. não tocar em áudio de produção até cumprir gates XLX.
+1. elevar STOI/eSTOI sem quebrar known-good;
+2. repetir os 20 arquivos humanos após cada mudança;
+3. somente aceitar mudança de codec se qualidade melhorar e clipping/estabilidade continuarem PASS;
+4. depois avançar para XLX observe-only completo;
+5. manter produção bloqueada até os gates HW/PROD.
