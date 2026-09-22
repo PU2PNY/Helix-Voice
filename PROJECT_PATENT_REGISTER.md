@@ -26,7 +26,7 @@ Por padrão, qualquer feature nova começa em **UNREVIEWED**.
 | AdaptiveGain | controle de nível por RMS | docs/patent-reviews/dsp-level-control.md | UNCERTAIN | BLOQUEADA |
 | SoftLimiter | limitação de pico sem look-ahead | docs/patent-reviews/dsp-level-control.md | UNCERTAIN | BLOQUEADA |
 | Decimator2 | 16 kHz → 8 kHz windowed-sinc FIR | docs/patent-reviews/decimator2.md | REVIEWED-LOWER-RISK | revisão jurídica ainda necessária antes de claim comercial |
-| HVC PLC | concealment por repetição atenuada bounded | review pendente | UNREVIEWED | BLOQUEADA |
+| HVC PLC | concealment por repetição atenuada bounded | docs/patent-reviews/hvc-plc.md | UNCERTAIN | BLOQUEADA |
 | CRC-8/frame validation | integridade de pacote | review de utilidade pendente | UNREVIEWED | BLOQUEADA |
 | XLXD control adapter | interoperabilidade pública | review protocolo/IP pendente | UNREVIEWED | BLOQUEADA |
 | helix-daemon | processo/health/fail-closed | sem risco específico identificado até agora | UNREVIEWED | BLOQUEADA |
