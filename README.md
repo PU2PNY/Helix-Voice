@@ -406,6 +406,23 @@ O projeto deverá seguir:
 
 ---
 
+## Política de patentes e design-around
+
+O Helix aplica a regra de `PATENT_GUARDRAILS.md` ao projeto inteiro.
+
+Quando uma função tocar área patenteada/proprietária:
+- pesquisar estado da técnica, famílias e claims relevantes;
+- documentar o que deve ser evitado;
+- não usar patente como receita de implementação;
+- criar solução própria do zero;
+- preferir representação, framing, pipeline, estados e controle diferentes quando tecnicamente viável;
+- medir CPU, RAM, latência, tamanho, bitrate e energia quando aplicável;
+- bloquear produção para status FTO técnico UNCERTAIN/BLOCKED.
+
+O HVC v0 permanece protótipo/benchmark e **não é candidato final de produção** enquanto seu patent review estiver UNCERTAIN. A próxima geração será clean-slate e não usará explicitamente a estrutura pitch/voicing/gain do v0 como base.
+
+Clean-room e autoria independente reduzem risco de cópia, mas **não garantem freedom-to-operate**; uma solução independente ainda pode cair em claims válidos. Revisão jurídica especializada continua necessária antes de comercialização.
+
 ## Política de fontes e propriedade intelectual
 
 O Helix pretende manter rastreabilidade de decisões técnicas.
