@@ -29,6 +29,18 @@ Quando um sistema legado exigir codec proprietário, o Helix poderá somente usa
 ### IP-004 — Proveniência
 Toda dependência ou fonte externa que influencie materialmente uma implementação deve ter proveniência/licença registrada.
 
+### IP-005 — Pesquisa de patente obrigatória por risco
+Qualquer feature materialmente próxima de uma área patenteada ou proprietária deve passar por PATENT_GUARDRAILS.md antes de implementação/release.
+
+### IP-006 — Design-around independente
+Quando houver claim relevante ou risco material, a solução Helix deve ser redesenhada a partir de princípios públicos de engenharia, evitando a combinação de elementos reivindicada e documentando diferenças técnicas verificáveis.
+
+### IP-007 — Sem garantia falsa de FTO
+Clean-room, autoria independente ou busca negativa não autorizam afirmar ausência de infração. Status FTO técnico UNCERTAIN/BLOCKED impede produção/comercialização até design-around adicional ou revisão jurídica especializada.
+
+### IP-008 — Eficiência mensurável
+Quando houver alternativa própria a uma técnica de terceiros, otimizar CPU, memória, latência, tamanho, largura de banda e energia quando tecnicamente viável, sem sacrificar segurança IP, correção ou qualidade. Toda alegação de melhoria exige benchmark reproduzível.
+
 ## 3. Arquitetura
 
 ### ARCH-001 — Separação de camadas
