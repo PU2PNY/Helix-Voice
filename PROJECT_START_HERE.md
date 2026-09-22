@@ -20,13 +20,14 @@ Este é o ponto inicial obrigatório para qualquer pessoa ou IA que vá analisar
 5. `PROJECT_CHANGELOG.md` — evolução e decisões.
 6. `CLEAN_ROOM.md` — regra obrigatória de desenvolvimento independente.
 7. `PATENT_GUARDRAILS.md` — regra universal de pesquisa de patentes, design-around e FTO técnico.
-8. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
-9. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
-10. `ARCHITECTURE.md` — arquitetura técnica.
-11. `SPEC.md` — especificação HVE v0 de baixo nível.
-12. `ROADMAP.md` — sequência planejada.
-13. `THIRD_PARTY.md` — dependências/referências externas.
-14. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
+8. `PROJECT_PATENT_REGISTER.md` — gate central de patente/FTO por componente.
+9. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
+10. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
+11. `ARCHITECTURE.md` — arquitetura técnica.
+12. `SPEC.md` — especificação HVE v0 de baixo nível.
+13. `ROADMAP.md` — sequência planejada.
+14. `THIRD_PARTY.md` — dependências/referências externas.
+15. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
 
 ## Regra para qualquer IA
 
