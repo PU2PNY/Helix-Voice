@@ -42,3 +42,10 @@ When the user provides a sufficiently specified objective, execute it end-to-end
 - do not claim "ready", "complete", "compatible", "better" or "production" until the required evidence exists;
 - ask the user only when progress is blocked by information/action that cannot be obtained or safely inferred, such as unavailable credentials, inaccessible hardware, an irreversible business/product decision, or authorization that only the user can grant;
 - complete as much as possible in the current execution/session; never imply background work or future completion that is not actually running.
+
+
+Patent register gate:
+- read PROJECT_PATENT_REGISTER.md before implementing/releasing a relevant feature;
+- every new relevant feature starts UNREVIEWED and production-blocked;
+- update the register after patent review;
+- never treat REVIEWED-LOWER-RISK as legal clearance.
