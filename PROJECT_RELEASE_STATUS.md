@@ -13,6 +13,7 @@ Atualizado: 2026-09-22
 - **Integração real XLX026:** PENDENTE
 - **Integração real PU2PNY-OS:** PENDENTE
 - **HVC:** v0 experimental funcional em SW/ENV; qualidade objetiva ainda abaixo da meta final
+- **Patent/FTO:** governança obrigatória ativa; HVC v0 classificado tecnicamente como UNCERTAIN para produção/comercialização
 
 ## Known-good / preservar
 
@@ -147,16 +148,18 @@ Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integra
 ## Bloqueadores de produção
 
 1. qualidade HVC ainda abaixo da meta;
-2. ausência de ABX humano;
-3. ausência de segunda implementação HVC;
-4. ausência de integração de áudio XLX com backend autorizado;
-5. ausência de 24 h soak;
-6. ausência de evidência HW/RF;
-7. licença final ainda não definida.
+2. HVC v0 com patent/FTO técnico UNCERTAIN; não promover como candidato final;
+3. ausência de ABX humano;
+4. ausência de segunda implementação HVC;
+5. ausência de integração de áudio XLX com backend autorizado;
+6. ausência de 24 h soak;
+7. ausência de evidência HW/RF;
+8. licença final ainda não definida.
 
 ## Próxima prioridade
 
-1. elevar STOI/eSTOI sem quebrar known-good;
+1. concluir pesquisa patent/FTO por candidato e escolher arquitetura clean-slate;
+2. elevar STOI/eSTOI sem quebrar known-good;
 2. repetir os 20 arquivos humanos após cada mudança;
 3. somente aceitar mudança de codec se qualidade melhorar e clipping/estabilidade continuarem PASS;
 4. depois avançar para XLX observe-only completo;
