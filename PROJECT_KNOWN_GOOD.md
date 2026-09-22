@@ -42,6 +42,7 @@ A escala é contextual e deve vir acompanhada do número/teste que a sustenta.
 | XLXD control framing | SW + ENV | parser/encoder + captura real AMBEDPINGXLX999 | ÓTIMO para a fronteira observada |
 | XLX default safety | SW + ENV | Disabled/fail-closed | ÓTIMO |
 | Fala humana LibriSpeech | ENV | 20 arquivos, zero clipping | ÓTIMO como cobertura de teste |
+| Patent governance | DOC | PATENT_GUARDRAILS + per-feature review mandatory | ÓTIMO como controle de processo |
 | Inteligibilidade HVC v0 | ENV, STOI | média 0,601; mínimo 0,355; máximo 0,747 | RUIM para a meta final |
 | eSTOI HVC v0 | ENV | média 0,499 | RUIM para a meta final |
 | Distância espectral HVC v0 | ENV | média ~12,66 dB no lote humano | RUIM para a meta final |
@@ -76,3 +77,10 @@ Não tratar como aprovado:
 - pre-quality-improvement: baseline/pre-quality-improvement-2026-09-22
 
 Ao iniciar trabalho novo, leia este arquivo junto com PROJECT_RELEASE_STATUS.md e PROJECT_TEST_MATRIX.md.
+
+
+## Regra IP adicionada em 2026-09-22
+
+HVC v0 permanece conhecido-bom apenas como benchmark técnico. Ele não é known-good para FTO comercial. O review docs/patent-reviews/hvc-v0.md está UNCERTAIN e bloqueia sua promoção a produção.
+
+Nenhuma otimização futura pode quebrar PATENT_GUARDRAILS.md.
