@@ -604,6 +604,23 @@ mod tests {
     }
 
     #[test]
+    fn random_hvc_packets_never_panic() {
+        let mut state = 0x48_56_43_46_u32;
+
+        for _ in 0..20_000 {
+            let mut bytes = [0_u8; HVC_PACKET_BYTES];
+            for byte in &mut bytes {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                *byte = state as u8;
+            }
+
+            let _ = HvcPacket::from_bytes(bytes);
+        }
+    }
+
+    #[test]
     fn corrupted_packet_is_rejected() {
         let frame = sine_frame(100.0, 0.2);
         let mut encoder = HvcEncoder;
