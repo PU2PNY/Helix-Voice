@@ -19,13 +19,14 @@ Este é o ponto inicial obrigatório para qualquer pessoa ou IA que vá analisar
 4. `PROJECT_KNOWN_GOOD.md` — baseline comprovado que não pode regredir.
 5. `PROJECT_CHANGELOG.md` — evolução e decisões.
 6. `CLEAN_ROOM.md` — regra obrigatória de desenvolvimento independente.
-7. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
-8. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
-9. `ARCHITECTURE.md` — arquitetura técnica.
-10. `SPEC.md` — especificação HVE v0 de baixo nível.
-11. `ROADMAP.md` — sequência planejada.
-12. `THIRD_PARTY.md` — dependências/referências externas.
-13. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
+7. `PATENT_GUARDRAILS.md` — regra universal de pesquisa de patentes, design-around e FTO técnico.
+8. `HVC_SPEC.md` — especificação experimental do bitstream HVC v0.
+9. `HVC_TEST_VECTORS.md` — vetores canônicos próprios/redistribuíveis.
+10. `ARCHITECTURE.md` — arquitetura técnica.
+11. `SPEC.md` — especificação HVE v0 de baixo nível.
+12. `ROADMAP.md` — sequência planejada.
+13. `THIRD_PARTY.md` — dependências/referências externas.
+14. `docs/DECISIONS.md`, `docs/XLX-INTEGRATION.md`, `docs/PU2PNY-INTEGRATION.md`, `docs/AUDIO-QUALITY.md`, `docs/RECOVERY.md`.
 
 ## Regra para qualquer IA
 
@@ -38,6 +39,7 @@ Antes de propor ou executar mudanças:
 5. não confunda `SW` com `HW`, `ENV` ou `PROD`;
 6. nunca afirme compatibilidade, qualidade ou desempenho sem evidência;
 7. não copie nem reimplemente material proprietário;
+8. para qualquer feature com risco de patente, siga PATENT_GUARDRAILS.md antes de implementar;
 8. registre mudança permanente em requisitos/testes/status/changelog;
 9. use commits pequenos e mantenha rollback;
 10. se houver conflito entre conversa e documentação versionada, pare e reconcilie explicitamente.
