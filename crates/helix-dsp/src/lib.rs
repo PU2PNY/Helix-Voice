@@ -253,12 +253,20 @@ mod tests {
         let mut samples = [0.82_f32, 0.9, 1.0, 1.5, 3.0];
         SoftLimiter::default().process(&mut samples);
 
-        assert!(samples.iter().all(|sample| *sample >= 0.0 && *sample <= 1.0));
+        assert!(
+            samples
+                .iter()
+                .all(|sample| *sample >= 0.0 && *sample <= 1.0)
+        );
         assert!(samples.windows(2).all(|pair| pair[0] <= pair[1]));
 
         let mut negative = [-0.9_f32, -1.5, -3.0];
         SoftLimiter::default().process(&mut negative);
-        assert!(negative.iter().all(|sample| *sample <= 0.0 && *sample >= -1.0));
+        assert!(
+            negative
+                .iter()
+                .all(|sample| *sample <= 0.0 && *sample >= -1.0)
+        );
     }
 
     #[test]
