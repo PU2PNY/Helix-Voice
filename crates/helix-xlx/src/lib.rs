@@ -369,3 +369,242 @@ mod tests {
         );
     }
 }
+
+
+// Local PCM bridge contract.
+//
+// This wire format is intentionally codec-agnostic. Legacy codec decoding and
+// encoding remain outside Helix; an external adapter may exchange canonical
+// PCM with helix-daemon over a local Unix socket.
+pub const PCM_BRIDGE_MAGIC: [u8; 4] = *b"HXP1";
+pub const PCM_BRIDGE_VERSION: u8 = 1;
+pub const PCM_BRIDGE_HEADER_LEN: usize = 24;
+pub const PCM_BRIDGE_MAX_SAMPLES: usize = helix_core::MAX_FRAME_SAMPLES;
+pub const PCM_BRIDGE_MAX_PACKET_LEN: usize =
+    PCM_BRIDGE_HEADER_LEN + PCM_BRIDGE_MAX_SAMPLES * core::mem::size_of::<i16>();
+
+/// Request: apply the Helix DSP chain before returning PCM.
+pub const PCM_BRIDGE_FLAG_APPLY_DSP: u8 = 0x01;
+/// Request: reset per-stream DSP state before processing this frame.
+pub const PCM_BRIDGE_FLAG_RESET_STREAM: u8 = 0x02;
+/// Response: frame was accepted and returned successfully.
+pub const PCM_BRIDGE_FLAG_OK: u8 = 0x80;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PcmBridgeError {
+    InvalidLength,
+    InvalidMagic,
+    UnsupportedVersion(u8),
+    InvalidFlags(u8),
+    InvalidSampleCount,
+    InvalidSampleRate,
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct PcmBridgeFrame {
+    flags: u8,
+    stream_id: u32,
+    sample_rate_hz: u32,
+    timestamp_samples: u64,
+    samples: [i16; PCM_BRIDGE_MAX_SAMPLES],
+    sample_count: usize,
+}
+
+impl PcmBridgeFrame {
+    pub fn new(
+        flags: u8,
+        stream_id: u32,
+        sample_rate_hz: u32,
+        timestamp_samples: u64,
+        input: &[i16],
+    ) -> Result<Self, PcmBridgeError> {
+        if flags & !(PCM_BRIDGE_FLAG_APPLY_DSP | PCM_BRIDGE_FLAG_RESET_STREAM | PCM_BRIDGE_FLAG_OK)
+            != 0
+        {
+            return Err(PcmBridgeError::InvalidFlags(flags));
+        }
+        if input.is_empty() || input.len() > PCM_BRIDGE_MAX_SAMPLES {
+            return Err(PcmBridgeError::InvalidSampleCount);
+        }
+        if !(8_000..=48_000).contains(&sample_rate_hz) {
+            return Err(PcmBridgeError::InvalidSampleRate);
+        }
+
+        let mut samples = [0_i16; PCM_BRIDGE_MAX_SAMPLES];
+        samples[..input.len()].copy_from_slice(input);
+        Ok(Self {
+            flags,
+            stream_id,
+            sample_rate_hz,
+            timestamp_samples,
+            samples,
+            sample_count: input.len(),
+        })
+    }
+
+    #[must_use]
+    pub const fn flags(&self) -> u8 {
+        self.flags
+    }
+
+    pub fn set_flags(&mut self, flags: u8) -> Result<(), PcmBridgeError> {
+        if flags & !(PCM_BRIDGE_FLAG_APPLY_DSP | PCM_BRIDGE_FLAG_RESET_STREAM | PCM_BRIDGE_FLAG_OK)
+            != 0
+        {
+            return Err(PcmBridgeError::InvalidFlags(flags));
+        }
+        self.flags = flags;
+        Ok(())
+    }
+
+    #[must_use]
+    pub const fn stream_id(&self) -> u32 {
+        self.stream_id
+    }
+
+    #[must_use]
+    pub const fn sample_rate_hz(&self) -> u32 {
+        self.sample_rate_hz
+    }
+
+    #[must_use]
+    pub const fn timestamp_samples(&self) -> u64 {
+        self.timestamp_samples
+    }
+
+    #[must_use]
+    pub fn samples(&self) -> &[i16] {
+        &self.samples[..self.sample_count]
+    }
+
+    pub fn samples_mut(&mut self) -> &mut [i16] {
+        &mut self.samples[..self.sample_count]
+    }
+
+    pub fn encode(&self, output: &mut [u8]) -> Result<usize, PcmBridgeError> {
+        let needed = PCM_BRIDGE_HEADER_LEN + self.sample_count * core::mem::size_of::<i16>();
+        if output.len() < needed {
+            return Err(PcmBridgeError::InvalidLength);
+        }
+
+        output[..4].copy_from_slice(&PCM_BRIDGE_MAGIC);
+        output[4] = PCM_BRIDGE_VERSION;
+        output[5] = self.flags;
+        output[6..8].copy_from_slice(&(self.sample_count as u16).to_le_bytes());
+        output[8..12].copy_from_slice(&self.stream_id.to_le_bytes());
+        output[12..16].copy_from_slice(&self.sample_rate_hz.to_le_bytes());
+        output[16..24].copy_from_slice(&self.timestamp_samples.to_le_bytes());
+
+        for (index, sample) in self.samples().iter().enumerate() {
+            let start = PCM_BRIDGE_HEADER_LEN + index * 2;
+            output[start..start + 2].copy_from_slice(&sample.to_le_bytes());
+        }
+        Ok(needed)
+    }
+
+    pub fn decode(input: &[u8]) -> Result<Self, PcmBridgeError> {
+        if input.len() < PCM_BRIDGE_HEADER_LEN {
+            return Err(PcmBridgeError::InvalidLength);
+        }
+        if input[..4] != PCM_BRIDGE_MAGIC {
+            return Err(PcmBridgeError::InvalidMagic);
+        }
+        if input[4] != PCM_BRIDGE_VERSION {
+            return Err(PcmBridgeError::UnsupportedVersion(input[4]));
+        }
+
+        let flags = input[5];
+        if flags & !(PCM_BRIDGE_FLAG_APPLY_DSP | PCM_BRIDGE_FLAG_RESET_STREAM | PCM_BRIDGE_FLAG_OK)
+            != 0
+        {
+            return Err(PcmBridgeError::InvalidFlags(flags));
+        }
+
+        let sample_count = u16::from_le_bytes([input[6], input[7]]) as usize;
+        if sample_count == 0 || sample_count > PCM_BRIDGE_MAX_SAMPLES {
+            return Err(PcmBridgeError::InvalidSampleCount);
+        }
+        let expected = PCM_BRIDGE_HEADER_LEN + sample_count * core::mem::size_of::<i16>();
+        if input.len() != expected {
+            return Err(PcmBridgeError::InvalidLength);
+        }
+
+        let stream_id = u32::from_le_bytes(input[8..12].try_into().expect("fixed slice"));
+        let sample_rate_hz =
+            u32::from_le_bytes(input[12..16].try_into().expect("fixed slice"));
+        if !(8_000..=48_000).contains(&sample_rate_hz) {
+            return Err(PcmBridgeError::InvalidSampleRate);
+        }
+        let timestamp_samples =
+            u64::from_le_bytes(input[16..24].try_into().expect("fixed slice"));
+
+        let mut samples = [0_i16; PCM_BRIDGE_MAX_SAMPLES];
+        for (index, sample) in samples[..sample_count].iter_mut().enumerate() {
+            let start = PCM_BRIDGE_HEADER_LEN + index * 2;
+            *sample = i16::from_le_bytes([input[start], input[start + 1]]);
+        }
+
+        Ok(Self {
+            flags,
+            stream_id,
+            sample_rate_hz,
+            timestamp_samples,
+            samples,
+            sample_count,
+        })
+    }
+}
+
+#[cfg(test)]
+mod pcm_bridge_tests {
+    use super::*;
+
+    #[test]
+    fn pcm_bridge_round_trip_is_bit_exact() {
+        let input = [-32_768_i16, -1234, 0, 1234, 32_767];
+        let frame = PcmBridgeFrame::new(
+            PCM_BRIDGE_FLAG_APPLY_DSP | PCM_BRIDGE_FLAG_RESET_STREAM,
+            7,
+            8_000,
+            160,
+            &input,
+        )
+        .expect("frame");
+
+        let mut wire = [0_u8; PCM_BRIDGE_MAX_PACKET_LEN];
+        let len = frame.encode(&mut wire).expect("encode");
+        let decoded = PcmBridgeFrame::decode(&wire[..len]).expect("decode");
+
+        assert_eq!(decoded.flags(), frame.flags());
+        assert_eq!(decoded.stream_id(), 7);
+        assert_eq!(decoded.sample_rate_hz(), 8_000);
+        assert_eq!(decoded.timestamp_samples(), 160);
+        assert_eq!(decoded.samples(), input);
+    }
+
+    #[test]
+    fn pcm_bridge_rejects_malformed_frames() {
+        assert_eq!(
+            PcmBridgeFrame::decode(b"short"),
+            Err(PcmBridgeError::InvalidLength)
+        );
+
+        let mut wire = [0_u8; PCM_BRIDGE_HEADER_LEN + 2];
+        wire[..4].copy_from_slice(&PCM_BRIDGE_MAGIC);
+        wire[4] = PCM_BRIDGE_VERSION;
+        wire[6..8].copy_from_slice(&1_u16.to_le_bytes());
+        wire[12..16].copy_from_slice(&7_999_u32.to_le_bytes());
+        assert_eq!(
+            PcmBridgeFrame::decode(&wire),
+            Err(PcmBridgeError::InvalidSampleRate)
+        );
+    }
+
+    #[test]
+    fn pcm_bridge_observe_frame_preserves_pcm() {
+        let input = [10_i16, -20, 30, -40];
+        let frame = PcmBridgeFrame::new(0, 1, 8_000, 0, &input).expect("frame");
+        assert_eq!(frame.samples(), input);
+        assert_eq!(frame.flags() & PCM_BRIDGE_FLAG_APPLY_DSP, 0);
+    }
+}
