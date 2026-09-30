@@ -186,3 +186,18 @@ Implementado em código:
 - XLX continua Disabled por padrão.
 
 O backend AMBE/AMBE+2 permanece externo ao Helix. Nenhuma integração de áudio de produção foi promovida por esta branch. `process` continua bloqueado pelos gates de áudio/ENV/rollback e pelos gates IP aplicáveis aos componentes DSP.
+
+
+### Evidência ENV — XLX PCM bridge V1 (2026-09-30)
+
+WartyWallaby:
+- `helix-daemon --self-test`: PASS;
+- contrato PCM HXP1 e observer não bloqueante: PASS;
+- bridge externo XLX exercitado com AMBE+2 válido gerado a partir de PCM;
+- `shadow` recebeu 40/40 frames sem alterar a saída do transcoder;
+- `process` recebeu/processou 40/40 frames numa execução single-stream, produzindo saída distinta do baseline;
+- Helix ausente foi tratado pelo adapter externo com fallback bit-idêntico ao baseline;
+- dois streams intercalados mantiveram entrega de 60/60 frames; um timeout do Helix foi contido pelo adapter externo sem falha do transcoder;
+- request/reply HXP1 direto, 2.000 frames: p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; máximo 3,653 ms; nenhum acima de 5 ms.
+
+Classificação: `ENV PASS` para IPC local, observer, DSP request/reply e isolamento/fallback demonstrado pelo adapter externo. Isso **não** promove `process` para PROD e não altera os bloqueadores de áudio real, soak, rollback, HW nem FTO.
