@@ -83,4 +83,4 @@ external legacy codec backend -> PCM16 -> HXP1/Unix -> Helix DSP
                                       <- PCM16 <-
 ```
 
-The external adapter is responsible for fail-open behavior. If Helix is unavailable, slow or invalid, the adapter must retain its original PCM and legacy radio path. `shadow` integration must discard the Helix-returned PCM; production processing requires a separate gate.
+The external adapter is responsible for fail-open behavior. If Helix is unavailable, slow or invalid, the adapter must retain its original PCM and legacy radio path. `shadow` uses a one-way non-blocking Unix datagram and has no response to wait for; production `process` uses the request/reply socket and requires a separate gate.
