@@ -1,12 +1,12 @@
 #![forbid(unsafe_code)]
 
-use helix_core::{PcmFrame, MAX_FRAME_SAMPLES};
+use helix_core::{MAX_FRAME_SAMPLES, PcmFrame};
 use helix_dsp::DspChain;
 use helix_hvc::{HVC_FRAME_SAMPLES, HVC_SAMPLE_RATE_HZ, HvcDecoder, HvcEncoder};
 use helix_xlx::{
-    IntegrationMode, PCM_BRIDGE_FLAG_APPLY_DSP, PCM_BRIDGE_FLAG_OK,
-    PCM_BRIDGE_FLAG_RESET_STREAM, PCM_BRIDGE_HEADER_LEN, PCM_BRIDGE_MAX_PACKET_LEN,
-    PCM_BRIDGE_MAX_SAMPLES, PcmBridgeFrame, XlxBridgeConfig, XLXD_MAX_STREAMS,
+    IntegrationMode, PCM_BRIDGE_FLAG_APPLY_DSP, PCM_BRIDGE_FLAG_OK, PCM_BRIDGE_FLAG_RESET_STREAM,
+    PCM_BRIDGE_HEADER_LEN, PCM_BRIDGE_MAX_PACKET_LEN, PCM_BRIDGE_MAX_SAMPLES, PcmBridgeFrame,
+    XLXD_MAX_STREAMS, XlxBridgeConfig,
 };
 use std::collections::HashMap;
 use std::env;
@@ -179,10 +179,7 @@ impl BridgeState {
             }
 
             let mut normalized = [0.0_f32; MAX_FRAME_SAMPLES];
-            for (dst, src) in normalized
-                .iter_mut()
-                .zip(frame.samples().iter())
-            {
+            for (dst, src) in normalized.iter_mut().zip(frame.samples().iter()) {
                 *dst = f32::from(*src) / 32_768.0;
             }
 
