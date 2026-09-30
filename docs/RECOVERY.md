@@ -52,3 +52,7 @@ A baseline atual não possui banco nem estado persistente de usuário dentro do 
 ## Evidência
 
 Rollback só é considerado testado quando executado em ENV/HW apropriado. A existência desta documentação não equivale a teste de rollback.
+
+
+## Local PCM bridge
+The Helix daemon may be stopped or its Unix socket removed without requiring an XLXD restart. External clients must fall back to their original PCM on any bridge failure. Before enabling a client in `process`, prove in ENV that missing Helix does not interrupt legacy audio and that returning the client to `off` restores the known-good baseline.

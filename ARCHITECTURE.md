@@ -72,3 +72,15 @@ The audio hot path should:
 XLXD integration should initially use a separate process so an HVE crash cannot crash the reflector and rollback remains trivial.
 
 PU2PNY-OS integration should likewise use an optional systemd service and must not prevent boot if Helix is unavailable.
+
+
+## Local PCM bridge for XLX
+
+The first audio boundary is a Unix-domain stream socket owned by `helix-daemon`. The wire contract carries bounded PCM16 frames and stream identity; it carries no AMBE/AMBE+2 implementation.
+
+```text
+external legacy codec backend -> PCM16 -> HXP1/Unix -> Helix DSP
+                                      <- PCM16 <-
+```
+
+The external adapter is responsible for fail-open behavior. If Helix is unavailable, slow or invalid, the adapter must retain its original PCM and legacy radio path. `shadow` uses a one-way non-blocking Unix datagram and has no response to wait for; production `process` uses the request/reply socket and requires a separate gate.

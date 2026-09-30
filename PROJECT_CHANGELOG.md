@@ -265,3 +265,29 @@ CI de consolidação:
 O artefato do código DSP/robustez no commit d22e84157c60bd361cbb15360d58134515ce0274 também foi transferido para a WartyWallaby, conferido por SHA-256 e executado com helix-lab/helix-daemon self-tests PASS.
 
 Esse baseline é o ponto obrigatório de comparação para regressões futuras.
+
+
+## 2026-09-30 — Local PCM bridge XLX V1
+
+### Arquitetura
+- adicionado contrato local PCM16 `HXP1` v1 no `helix-xlx`;
+- adicionado servidor Unix socket opcional ao `helix-daemon`;
+- codec legado continua fora do núcleo Helix;
+- nenhum endpoint de rede remoto foi adicionado ao hot path.
+
+### Segurança operacional
+- buffers e quantidade de streams são limitados;
+- estado DSP é separado por stream;
+- modo padrão XLX continua Disabled;
+- integração externa deve aplicar fail-open/fallback para o caminho legado;
+- `process` não é liberado para produção nesta etapa.
+
+
+## 2026-09-30 — Validação ENV do PCM bridge XLX
+
+- WartyWallaby validou o contrato HXP1, observer datagrama não bloqueante e request/reply PCM.
+- O adapter XLX externo preservou saída bit-idêntica em `off`, Helix ausente e `shadow`.
+- `process` realmente aplicou PCM retornado pelo Helix em 40/40 frames na execução single-stream.
+- Dois streams intercalados entregaram todos os frames; timeout de Helix em um stream foi absorvido pelo fallback externo sem falha do transcoder.
+- Latência HXP1 direta em 2.000 frames: p50 0,085 ms, p95 0,319 ms, p99 0,817 ms, p99,9 1,750 ms, máximo 3,653 ms.
+- Nenhuma promoção PROD foi feita. O transcoder do XLX026 permanece intacto.

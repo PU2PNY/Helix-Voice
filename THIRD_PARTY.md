@@ -44,3 +44,7 @@ Required sources when applicable:
 Per-feature results must be recorded under docs/patent-reviews/ using docs/PATENT_REVIEW_TEMPLATE.md.
 
 A negative search does not establish freedom to operate.
+
+
+## Legacy codec bridge boundary
+The `HXP1` PCM bridge and the Helix Rust workspace do not link OP25, mbelib or a proprietary AMBE implementation. Legacy codec software/hardware remains an external adapter responsibility. A laboratory adapter in the XLX project may use separately licensed third-party components; those licenses and provenance belong with that adapter and do not change the Helix core boundary.
