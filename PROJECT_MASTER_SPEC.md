@@ -157,7 +157,7 @@ A integração inicial de áudio XLX deve usar IPC local PCM entre o backend leg
 Falha, ausência, timeout ou resposta inválida do Helix deve preservar o caminho legado. Um rádio DMR/YSF/D-Star compatível não pode depender de HVC/Helix para continuar operando.
 
 ### XLX-008 — Modos graduais
-A integração deve oferecer `off` como padrão, `shadow` sem alterar PCM transmitido e `process` somente após gates de qualidade, ENV e rollback. Nenhuma API/cloud pode participar do hot path.
+A integração deve oferecer `off` como padrão, `shadow` por IPC datagrama local não bloqueante e sem alterar PCM transmitido, e `process` request/reply somente após gates de qualidade, ENV e rollback. Nenhuma API/cloud pode participar do hot path.
 
 ### XLX-005 — Gate de produção
 Antes de produção:
