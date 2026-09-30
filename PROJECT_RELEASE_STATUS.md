@@ -172,3 +172,17 @@ Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integra
 5. medir THD/escuta do limiter e fala real do AGC;
 6. avançar para XLX observe-only completo;
 7. manter produção bloqueada até os gates IP/HW/PROD.
+
+
+## Trabalho isolado — XLX local PCM bridge V1
+Branch: `feature/xlx-legacy-pcm-bridge-v1-20260930`.
+
+Implementado em código:
+- protocolo PCM16 local `HXP1` v1 com buffers limitados;
+- Unix socket local no `helix-daemon`;
+- estado DSP por stream e reset explícito;
+- observe/bit-exact quando DSP não é solicitado;
+- processamento somente quando solicitado;
+- XLX continua Disabled por padrão.
+
+O backend AMBE/AMBE+2 permanece externo ao Helix. Nenhuma integração de áudio de produção foi promovida por esta branch. `process` continua bloqueado pelos gates de áudio/ENV/rollback e pelos gates IP aplicáveis aos componentes DSP.
