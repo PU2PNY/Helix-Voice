@@ -399,7 +399,7 @@ pub enum PcmBridgeError {
     InvalidSampleRate,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PcmBridgeFrame {
     flags: u8,
     stream_id: u32,
