@@ -8,12 +8,12 @@ use helix_xlx::{
     PCM_BRIDGE_HEADER_LEN, PCM_BRIDGE_MAX_PACKET_LEN, PCM_BRIDGE_MAX_SAMPLES, PcmBridgeFrame,
     XLXD_MAX_STREAMS, XlxBridgeConfig,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::fs;
 use std::io::{ErrorKind, Read, Write};
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
-use std::os::unix::net::{UnixListener, UnixStream};
+use std::os::unix::net::{UnixDatagram, UnixListener, UnixStream};
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -51,6 +51,13 @@ fn run() -> Result<(), String> {
             ensure_no_extra_args(args)?;
             serve_pcm_bridge(&socket_path)
         }
+        Some("--pcm-observe") => {
+            let socket_path = args
+                .next()
+                .ok_or_else(|| "--pcm-observe requires a Unix datagram socket path".to_owned())?;
+            ensure_no_extra_args(args)?;
+            serve_pcm_observe(&socket_path)
+        }
         Some(argument) => Err(format!("unsupported argument: {argument}")),
         None => {
             let xlx = XlxBridgeConfig::default();
@@ -61,8 +68,11 @@ fn run() -> Result<(), String> {
             println!("XLX integration mode: {:?}", xlx.mode);
             println!("Network activation: disabled");
             println!("Local PCM bridge: available but not started");
+            println!("Non-blocking PCM observer: available but not started");
             println!("No proprietary codec implementation is included.");
-            println!("Use --health, --self-test or --pcm-bridge <unix-socket>.");
+            println!(
+                "Use --health, --self-test, --pcm-bridge <unix-socket> or --pcm-observe <unix-dgram>."
+            );
             Ok(())
         }
     }
@@ -161,21 +171,30 @@ fn self_test() -> Result<(), String> {
 #[derive(Default)]
 struct BridgeState {
     chains: HashMap<u32, DspChain>,
+    order: VecDeque<u32>,
 }
 
 impl BridgeState {
     fn process(&mut self, frame: &mut PcmBridgeFrame) -> Result<(), String> {
         let apply_dsp = frame.flags() & PCM_BRIDGE_FLAG_APPLY_DSP != 0;
         let reset = frame.flags() & PCM_BRIDGE_FLAG_RESET_STREAM != 0;
+        let stream_id = frame.stream_id();
 
         if apply_dsp {
             if reset {
-                self.chains.remove(&frame.stream_id());
+                self.chains.remove(&stream_id);
+                self.order.retain(|id| *id != stream_id);
             }
-            if !self.chains.contains_key(&frame.stream_id())
-                && self.chains.len() >= XLXD_MAX_STREAMS as usize
-            {
-                return Err("PCM bridge stream-state limit reached".to_owned());
+
+            if !self.chains.contains_key(&stream_id) {
+                while self.chains.len() >= XLXD_MAX_STREAMS as usize {
+                    let Some(stale) = self.order.pop_front() else {
+                        return Err("PCM bridge stream-state accounting failed".to_owned());
+                    };
+                    self.chains.remove(&stale);
+                }
+                self.chains.insert(stream_id, DspChain::default());
+                self.order.push_back(stream_id);
             }
 
             let mut normalized = [0.0_f32; MAX_FRAME_SAMPLES];
@@ -191,8 +210,8 @@ impl BridgeState {
             .map_err(|error| format!("PCM bridge rejected frame: {error:?}"))?;
 
             self.chains
-                .entry(frame.stream_id())
-                .or_default()
+                .get_mut(&stream_id)
+                .ok_or_else(|| "PCM bridge stream state missing".to_owned())?
                 .process(&mut pcm);
 
             for (dst, src) in frame.samples_mut().iter_mut().zip(pcm.samples().iter()) {
@@ -262,6 +281,54 @@ fn serve_pcm_bridge(socket_path: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn serve_pcm_observe(socket_path: &str) -> Result<(), String> {
+    let path = Path::new(socket_path);
+    if let Ok(metadata) = fs::symlink_metadata(path) {
+        if !metadata.file_type().is_socket() {
+            return Err(format!(
+                "refusing to replace non-socket path: {}",
+                path.display()
+            ));
+        }
+        fs::remove_file(path)
+            .map_err(|error| format!("remove stale socket {}: {error}", path.display()))?;
+    }
+
+    let parent = path
+        .parent()
+        .ok_or_else(|| "PCM observe socket requires a parent directory".to_owned())?;
+    if !parent.exists() {
+        return Err(format!(
+            "PCM observe parent directory does not exist: {}",
+            parent.display()
+        ));
+    }
+
+    let socket = UnixDatagram::bind(path)
+        .map_err(|error| format!("bind PCM observe {}: {error}", path.display()))?;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o660))
+        .map_err(|error| format!("chmod PCM observe {}: {error}", path.display()))?;
+
+    println!("Helix PCM observer listening on {}", path.display());
+    println!("Observer is one-way and never participates in legacy audio delivery.");
+
+    let mut state = BridgeState::default();
+    loop {
+        let mut wire = [0_u8; PCM_BRIDGE_MAX_PACKET_LEN];
+        let received = socket
+            .recv(&mut wire)
+            .map_err(|error| format!("receive PCM observe datagram: {error}"))?;
+        if received < PCM_BRIDGE_HEADER_LEN {
+            continue;
+        }
+
+        let Ok(mut frame) = PcmBridgeFrame::decode(&wire[..received]) else {
+            continue;
+        };
+        let _ = state.process(&mut frame);
+    }
+}
+
 fn handle_client(stream: &mut UnixStream, state: &mut BridgeState) -> Result<(), String> {
     loop {
         let mut wire = [0_u8; PCM_BRIDGE_MAX_PACKET_LEN];
@@ -316,6 +383,27 @@ mod tests {
         assert_eq!(frame.samples(), input);
         assert_ne!(frame.flags() & PCM_BRIDGE_FLAG_OK, 0);
         assert_eq!(frame.flags() & PCM_BRIDGE_FLAG_APPLY_DSP, 0);
+    }
+
+    #[test]
+    fn stale_stream_state_is_evicted_without_unbounded_growth() {
+        let input = [1000_i16; 160];
+        let mut state = BridgeState::default();
+
+        for stream_id in 1..=(XLXD_MAX_STREAMS as u32 + 20) {
+            let mut frame = PcmBridgeFrame::new(
+                PCM_BRIDGE_FLAG_APPLY_DSP | PCM_BRIDGE_FLAG_RESET_STREAM,
+                stream_id,
+                8_000,
+                0,
+                &input,
+            )
+            .expect("frame");
+            state.process(&mut frame).expect("process");
+        }
+
+        assert_eq!(state.chains.len(), XLXD_MAX_STREAMS as usize);
+        assert_eq!(state.order.len(), XLXD_MAX_STREAMS as usize);
     }
 
     #[test]
