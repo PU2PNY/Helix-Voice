@@ -265,3 +265,19 @@ CI de consolidação:
 O artefato do código DSP/robustez no commit d22e84157c60bd361cbb15360d58134515ce0274 também foi transferido para a WartyWallaby, conferido por SHA-256 e executado com helix-lab/helix-daemon self-tests PASS.
 
 Esse baseline é o ponto obrigatório de comparação para regressões futuras.
+
+
+## 2026-09-30 — Local PCM bridge XLX V1
+
+### Arquitetura
+- adicionado contrato local PCM16 `HXP1` v1 no `helix-xlx`;
+- adicionado servidor Unix socket opcional ao `helix-daemon`;
+- codec legado continua fora do núcleo Helix;
+- nenhum endpoint de rede remoto foi adicionado ao hot path.
+
+### Segurança operacional
+- buffers e quantidade de streams são limitados;
+- estado DSP é separado por stream;
+- modo padrão XLX continua Disabled;
+- integração externa deve aplicar fail-open/fallback para o caminho legado;
+- `process` não é liberado para produção nesta etapa.
