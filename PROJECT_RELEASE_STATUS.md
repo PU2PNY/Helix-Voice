@@ -179,7 +179,7 @@ Branch: `feature/xlx-legacy-pcm-bridge-v1-20260930`.
 
 Implementado em código:
 - protocolo PCM16 local `HXP1` v1 com buffers limitados;
-- Unix socket local no `helix-daemon`;
+- Unix stream request/reply e Unix datagram one-way locais no `helix-daemon`;
 - estado DSP por stream e reset explícito;
 - observe/bit-exact quando DSP não é solicitado;
 - processamento somente quando solicitado;
