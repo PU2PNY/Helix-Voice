@@ -336,6 +336,6 @@ mod tests {
 
         assert_eq!(frame.samples().len(), input.len());
         assert_ne!(frame.flags() & PCM_BRIDGE_FLAG_OK, 0);
-        assert!(frame.samples().iter().all(|sample| *sample <= i16::MAX));
+        assert!(frame.samples().iter().all(|sample| *sample != i16::MIN));
     }
 }
