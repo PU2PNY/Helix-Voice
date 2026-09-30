@@ -370,7 +370,6 @@ mod tests {
     }
 }
 
-
 // Local PCM bridge contract.
 //
 // This wire format is intentionally codec-agnostic. Legacy codec decoding and
@@ -530,13 +529,11 @@ impl PcmBridgeFrame {
         }
 
         let stream_id = u32::from_le_bytes(input[8..12].try_into().expect("fixed slice"));
-        let sample_rate_hz =
-            u32::from_le_bytes(input[12..16].try_into().expect("fixed slice"));
+        let sample_rate_hz = u32::from_le_bytes(input[12..16].try_into().expect("fixed slice"));
         if !(8_000..=48_000).contains(&sample_rate_hz) {
             return Err(PcmBridgeError::InvalidSampleRate);
         }
-        let timestamp_samples =
-            u64::from_le_bytes(input[16..24].try_into().expect("fixed slice"));
+        let timestamp_samples = u64::from_le_bytes(input[16..24].try_into().expect("fixed slice"));
 
         let mut samples = [0_i16; PCM_BRIDGE_MAX_SAMPLES];
         for (index, sample) in samples[..sample_count].iter_mut().enumerate() {
