@@ -150,6 +150,15 @@ Backend/hardware/licença existente não pode ser removido antes de backup e val
 ### XLX-004 — Backend proprietário externo
 Qualquer capacidade proprietária fica fora do núcleo e atrás de backend externo autorizado/licenciado.
 
+### XLX-006 — Local PCM bridge
+A integração inicial de áudio XLX deve usar IPC local PCM entre o backend legado externo e o Helix, sem incorporar AMBE/AMBE+2 ao núcleo Helix.
+
+### XLX-007 — Legacy fallback obrigatório
+Falha, ausência, timeout ou resposta inválida do Helix deve preservar o caminho legado. Um rádio DMR/YSF/D-Star compatível não pode depender de HVC/Helix para continuar operando.
+
+### XLX-008 — Modos graduais
+A integração deve oferecer `off` como padrão, `shadow` sem alterar PCM transmitido e `process` somente após gates de qualidade, ENV e rollback. Nenhuma API/cloud pode participar do hot path.
+
 ### XLX-005 — Gate de produção
 Antes de produção:
 - soak de 24 h;
