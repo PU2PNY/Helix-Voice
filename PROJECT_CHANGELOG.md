@@ -291,3 +291,12 @@ Esse baseline é o ponto obrigatório de comparação para regressões futuras.
 - Dois streams intercalados entregaram todos os frames; timeout de Helix em um stream foi absorvido pelo fallback externo sem falha do transcoder.
 - Latência HXP1 direta em 2.000 frames: p50 0,085 ms, p95 0,319 ms, p99 0,817 ms, p99,9 1,750 ms, máximo 3,653 ms.
 - Nenhuma promoção PROD foi feita. O transcoder do XLX026 permanece intacto.
+
+
+## 2026-09-30 — Follow-up de repetibilidade do adapter XLX
+
+- O bridge Helix em `main` permanece local, opcional e Disabled por padrão.
+- O adapter externo do XLX comprovou continuidade/fail-open em multi-stream, mas `process` não é repetível o suficiente para produção dentro da deadline total de 1..5 ms.
+- Runs observados mantiveram 40/40 frames por stream e zero falha de codec, mas acionaram fallback sticky após quantidades variáveis de respostas Helix: 4/5, 35/34, 2/28 e 18/14.
+- Não aumentar a deadline para esconder a variabilidade; scheduling/contenção é hipótese, não causa raiz estabelecida.
+- Nenhuma promoção de áudio PROD foi feita. Soak de 24 h, rollback completo, HW/áudio e gates IP continuam obrigatórios.

@@ -89,3 +89,5 @@ Nenhum item PENDENTE/PARCIAL pode ser promovido por inferência. Mudanças no HV
 
 | T-XLX-008 | XLX-006/007/008 | HXP1 local + observer + fallback externo em transcoder de laboratório | off/fallback/shadow bit-idênticos; shadow 40/40; process 40/40; 2 streams 60/60 com fallback seguro de um stream | ENV | PASS |
 | T-XLX-009 | PERF-001 | latência HXP1 request/reply, 2.000 frames | p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; max 3,653 ms; 0 >5 ms | ENV | PASS |
+
+| T-XLX-010 | XLX-005/007/008 / PERF-001 | Repetibilidade do adapter externo em `process` multi-stream | Installer ENV: todos os runs entregam 40/40 frames por stream e 0 falhas de codec; respostas Helix antes de fallback variam (4/5, 35/34, 2/28, 18/14). Continuidade PASS; confiabilidade sob contenção PARCIAL; causa raiz ainda não provada | ENV | PARCIAL |
