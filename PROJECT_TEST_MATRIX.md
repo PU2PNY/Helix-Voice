@@ -91,3 +91,6 @@ Nenhum item PENDENTE/PARCIAL pode ser promovido por inferência. Mudanças no HV
 | T-XLX-009 | PERF-001 | latência HXP1 request/reply, 2.000 frames | p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; max 3,653 ms; 0 >5 ms | ENV | PASS |
 
 | T-XLX-010 | XLX-005/007/008 / PERF-001 | Repetibilidade do adapter externo em `process` multi-stream | Installer ENV: todos os runs entregam 40/40 frames por stream e 0 falhas de codec; respostas Helix antes de fallback variam (4/5, 35/34, 2/28, 18/14). Continuidade PASS; confiabilidade sob contenção PARCIAL; causa raiz ainda não provada | ENV | PARCIAL |
+| T-DSP-010 | DSP-003/007/008 | Perfil XLX conservador: nominal próximo de unidade, boost/attenuation bounded, silêncio sem drift, limiter 1:1 abaixo do knee, saída finita | SW + ENV | PENDENTE |
+| T-XLX-011 | DSP-008 / XLX-005/008 | PCM bridge usa perfil XLX separado; HVC/default permanece inalterado; latência/CPU e fallback não regressam | SW + ENV | PENDENTE |
+| T-AUDIO-007 | DSP-007/008 / TEST-004 | Cross-mode D-Star↔AMBE+2 em RF real, comparação com shadow conhecido-bom | HW/PROD + OPERATOR | PENDENTE |
