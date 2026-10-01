@@ -1,6 +1,6 @@
 # PROJECT_RELEASE_STATUS — Helix Voice
 
-Atualizado: 2026-09-22
+Atualizado: 2026-09-30
 
 ## Estado atual
 
@@ -13,7 +13,7 @@ Atualizado: 2026-09-22
 - **Rollback conhecido-bom:** baseline/known-good-2026-09-22
 - **Rollback antes da nova fase de qualidade:** baseline/pre-quality-improvement-2026-09-22
 - **Produção:** não
-- **Integração real XLX026:** PENDENTE
+- **PCM bridge XLX:** integrado em `main` como código local/default-disabled no commit `e80969d58d0ecf0f4bd55bbc7fae85311c0176d2`; integração de áudio XLX026 em produção continua PENDENTE
 - **Integração real PU2PNY-OS:** PENDENTE
 - **HVC:** v0 experimental funcional em SW/ENV; qualidade objetiva ainda abaixo da meta final
 - **Patent/FTO:** governança obrigatória ativa; HVC v0 classificado tecnicamente como UNCERTAIN para produção/comercialização
@@ -175,7 +175,7 @@ Avaliação: **ÓTIMO para a fronteira observada**, mas ainda não prova integra
 
 
 ## Trabalho isolado — XLX local PCM bridge V1
-Branch: `feature/xlx-legacy-pcm-bridge-v1-20260930`.
+Branch de origem: `feature/xlx-legacy-pcm-bridge-v1-20260930`; PR #1 mesclada em `main` como `e80969d58d0ecf0f4bd55bbc7fae85311c0176d2`.
 
 Implementado em código:
 - protocolo PCM16 local `HXP1` v1 com buffers limitados;
@@ -201,3 +201,15 @@ WartyWallaby:
 - request/reply HXP1 direto, 2.000 frames: p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; máximo 3,653 ms; nenhum acima de 5 ms.
 
 Classificação: `ENV PASS` para IPC local, observer, DSP request/reply e isolamento/fallback demonstrado pelo adapter externo. Isso **não** promove `process` para PROD e não altera os bloqueadores de áudio real, soak, rollback, HW nem FTO.
+
+
+### Evidência posterior do adapter XLX externo — repetibilidade de `process`
+O adapter externo vive no repositório `PU2PNY/XLX-Modern-Installer` e foi mesclado como código experimental/default-off pela PR #65 (`main` `15a1612a720bbab4882bf1b56f4584301a2ec16b`). A evidência posterior preserva 40/40 frames por stream e zero falha de codec, mas a quantidade de respostas Helix antes do fallback sticky variou entre execuções: wrapper 4/5 e três repetições adicionais 35/34, 2/28 e 18/14. Portanto:
+- continuidade/fail-open: **PASS (ENV)**;
+- isolamento/estado por stream: **PASS (ENV)**;
+- confiabilidade de `process` sob contenção: **PARCIAL (ENV)**;
+- produção: **BLOQUEADA**.
+
+O limite total de 1..5 ms não deve ser ampliado para mascarar essa variabilidade. Scheduling/contenção permanece hipótese, não causa raiz provada. `shadow` e `process` continuam sujeitos a soak, rollback completo, áudio/HW e gates IP aplicáveis antes de qualquer promoção PROD.
+
+Fonte canônica do adapter e evidências: https://github.com/PU2PNY/XLX-Modern-Installer/tree/main/docs/evidence
