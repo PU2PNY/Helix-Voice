@@ -300,3 +300,11 @@ Esse baseline é o ponto obrigatório de comparação para regressões futuras.
 - Runs observados mantiveram 40/40 frames por stream e zero falha de codec, mas acionaram fallback sticky após quantidades variáveis de respostas Helix: 4/5, 35/34, 2/28 e 18/14.
 - Não aumentar a deadline para esconder a variabilidade; scheduling/contenção é hipótese, não causa raiz estabelecida.
 - Nenhuma promoção de áudio PROD foi feita. Soak de 24 h, rollback completo, HW/áudio e gates IP continuam obrigatórios.
+
+## 2026-10-01 — Perfil conservador para PCM bridge XLX
+- Operador relatou áudio estranho D-Star↔YSF com o perfil genérico do Helix em `process`; XLX026 retornou imediatamente a `shadow`.
+- Mantido `DspChain::default()` conhecido-bom sem alteração.
+- Adicionado `DspChain::xlx_crossmode()` somente para o PCM bridge: ganho 0,50×..1,50×, target RMS 0,10, silêncio 0,006, ataque 0,20, recuperação 0,02 e limiter knee 0,95.
+- Probe ENV confirmou redução forte da excursão de ganho; nominal permanece 1,000×.
+- Single 3.000 frames e multi 2×1.500 frames com xuvd bounded: zero falha de codec, fallbacks isolados, nenhum stream desabilitado.
+- Nenhum claim de qualidade RF/PROD: validação auditiva real permanece pendente e o XLX026 continua em `shadow`.
