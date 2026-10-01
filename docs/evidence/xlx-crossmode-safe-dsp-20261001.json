@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-01",
+  "scope": "XLX crossmode conservative DSP profile",
+  "level": [
+    "SW",
+    "ENV",
+    "OPERATOR regression context"
+  ],
+  "operator_context": {
+    "previous_process_audio": "reported strange in D-Star<->YSF",
+    "mitigation": "XLX026 returned to shadow before candidate work"
+  },
+  "generic_profile": {
+    "target_rms": 0.125,
+    "min_gain": 0.25,
+    "max_gain": 4,
+    "silence_rms": 0.003,
+    "attack": 0.35,
+    "release": 0.08,
+    "limiter_knee": 0.82
+  },
+  "safe_profile": {
+    "target_rms": 0.1,
+    "min_gain": 0.5,
+    "max_gain": 1.5,
+    "silence_rms": 0.006,
+    "attack": 0.2,
+    "release": 0.02,
+    "limiter_knee": 0.95
+  },
+  "profile_probe": {
+    "generic": {
+      "nominal": {
+        "first": 1.0201,
+        "last": 1.2499
+      },
+      "low": {
+        "first": 1.4702,
+        "last": 4
+      },
+      "high_after_low": {
+        "first": 1.9804,
+        "last": 0.25
+      },
+      "nominal_after_high": {
+        "first": 0.3299,
+        "last": 1.2499
+      }
+    },
+    "safe": {
+      "nominal": {
+        "first": 1,
+        "last": 1
+      },
+      "low": {
+        "first": 1.0107,
+        "last": 1.4565
+      },
+      "high_after_low": {
+        "first": 1.2646,
+        "last": 0.5
+      },
+      "nominal_after_high": {
+        "first": 0.5099,
+        "last": 0.9558
+      }
+    }
+  },
+  "tests": {
+    "helix_dsp": "14/14 PASS",
+    "helix_daemon": "5/5 PASS",
+    "clippy": "PASS",
+    "daemon_self_test": "PASS",
+    "rust_ci_run": 36820590243,
+    "rust_ci_result": "success"
+  },
+  "daemon_sha256": "63f51d7bb2e18ad4c151fe571f3a3120e746f3d3858514e0d2f3ddeae1787574",
+  "paced_hxp1": {
+    "frames": 3000,
+    "ok": 2994,
+    "fail": 6,
+    "max_consecutive_fail": 1,
+    "p50_ms": 0.208042,
+    "p95_ms": 1.035,
+    "p99_ms": 2.95854,
+    "p999_ms": 5.23661,
+    "max_ms": 11.773
+  },
+  "e2e": {
+    "single": {
+      "frames": 3000,
+      "codec_failures": 0,
+      "helix_ok": 2988,
+      "helix_fallback": 12,
+      "consecutive_max": 1,
+      "stream_disabled": 0
+    },
+    "multi": [
+      {
+        "frames": 1500,
+        "codec_failures": 0,
+        "helix_ok": 1488,
+        "helix_fallback": 12,
+        "consecutive_max": 1,
+        "stream_disabled": 0
+      },
+      {
+        "frames": 1500,
+        "codec_failures": 0,
+        "helix_ok": 1492,
+        "helix_fallback": 8,
+        "consecutive_max": 1,
+        "stream_disabled": 0
+      }
+    ]
+  },
+  "limits": [
+    "No human/RF audio validation of safe profile yet",
+    "No 24h soak",
+    "FTO status unchanged",
+    "Production remains shadow"
+  ]
+}

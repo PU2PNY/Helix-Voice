@@ -42,3 +42,8 @@ It must not boost silence or stationary background noise without bound. Gain mus
 ## Release rule
 
 A new DSP setting is not "better" because it is louder. Loudness, distortion, intelligibility and fatigue must be evaluated together.
+
+## XLX cross-mode profile
+O PCM bridge XLX trabalha sobre voz já decodificada de codecs legados e não deve usar o range agressivo do protótipo genérico como padrão operacional. O perfil XLX deve priorizar transparência: limite de ganho aproximado de -6 dB a +3,5 dB, recuperação de ganho lenta, atenuação mais rápida, silêncio protegido e limiter com knee alto. Esse perfil é específico da integração XLX; o `DspChain::default()` e os baselines HVC permanecem separados.
+
+Qualquer afirmação de melhora auditiva continua exigindo escuta A/B/ABX ou validação de operador; métricas SW/ENV não substituem áudio real.
