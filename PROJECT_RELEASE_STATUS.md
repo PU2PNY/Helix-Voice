@@ -213,3 +213,12 @@ O adapter externo vive no repositório `PU2PNY/XLX-Modern-Installer` e foi mescl
 O limite total de 1..5 ms não deve ser ampliado para mascarar essa variabilidade. Scheduling/contenção permanece hipótese, não causa raiz provada. `shadow` e `process` continuam sujeitos a soak, rollback completo, áudio/HW e gates IP aplicáveis antes de qualquer promoção PROD.
 
 Fonte canônica do adapter e evidências: https://github.com/PU2PNY/XLX-Modern-Installer/tree/main/docs/evidence
+
+## 2026-10-01 — XLX cross-mode safe DSP candidate
+Após o operador relatar áudio estranho no cross-mode D-Star↔YSF durante um teste real de Helix `process`, o XLX026 foi retornado a `shadow` antes de qualquer nova alteração. A comparação de logs mostrou que falhas de decode D-Star 1→2 também existiam no baseline `shadow`, portanto não foram atribuídas ao DSP sem evidência. O diferencial confirmado do teste `process` era o perfil genérico de nível: `AdaptiveGain::default()` permitia 0,25×..4,0× e limiter knee 0,82.
+
+Foi criado um perfil separado `DspChain::xlx_crossmode()` sem alterar `DspChain::default()`: target RMS 0,10, ganho 0,50×..1,50×, silence RMS 0,006, attack 0,20, release 0,02 e limiter knee 0,95. O algoritmo continua AdaptiveGain + SoftLimiter; o status FTO existente permanece inalterado.
+
+Evidência SW/ENV: helix-dsp 14/14 PASS, helix-daemon 5/5 PASS, clippy -D warnings PASS, daemon self-test PASS. Probe direto mostrou nominal 1,000× estável; trecho baixo ficou limitado a ~1,456× em vez de 4,0×; transição baixo→alto iniciou em ~1,265× em vez de ~1,980×. E2E com o xuvd bounded processou 3.000 frames single e 2×1.500 multi com zero falha de codec, `consecutive_max=1` e nenhum stream desabilitado. SHA do daemon release ENV: `63f51d7bb2e18ad4c151fe571f3a3120e746f3d3858514e0d2f3ddeae1787574`.
+
+A classificação permanece **SW/ENV**. O áudio RF real do novo perfil ainda é PENDENTE; produção permanece em `shadow` e nenhuma melhora auditiva é declarada por inferência.
