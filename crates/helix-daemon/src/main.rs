@@ -193,7 +193,7 @@ impl BridgeState {
                     };
                     self.chains.remove(&stale);
                 }
-                self.chains.insert(stream_id, DspChain::default());
+                self.chains.insert(stream_id, DspChain::xlx_crossmode());
                 self.order.push_back(stream_id);
             }
 
