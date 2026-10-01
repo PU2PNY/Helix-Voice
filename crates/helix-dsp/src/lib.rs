@@ -57,6 +57,24 @@ impl Default for AdaptiveGain {
 }
 
 impl AdaptiveGain {
+    /// Conservative profile for already-transcoded XLX cross-mode PCM.
+    ///
+    /// Keeps the existing RMS controller topology but sharply narrows the
+    /// allowed correction range and slows upward gain recovery so codec noise
+    /// and frame-to-frame level variation are not exaggerated.
+    #[must_use]
+    pub const fn xlx_crossmode() -> Self {
+        Self {
+            target_rms: 0.10,
+            min_gain: 0.50,
+            max_gain: 1.50,
+            silence_rms: 0.006,
+            gain: 1.0,
+            attack: 0.20,
+            release: 0.02,
+        }
+    }
+
     pub fn process(&mut self, samples: &mut [f32]) {
         let level = measure(samples);
 
@@ -96,6 +114,13 @@ impl Default for SoftLimiter {
 }
 
 impl SoftLimiter {
+    /// High-knee limiter for XLX cross-mode PCM. It is intentionally 1:1 for
+    /// normal speech peaks and only shapes samples close to full scale.
+    #[must_use]
+    pub const fn xlx_crossmode() -> Self {
+        Self { knee: 0.95 }
+    }
+
     pub fn process(&self, samples: &mut [f32]) {
         let knee = self.knee.clamp(0.5, 0.99);
         let headroom = 1.0 - knee;
@@ -229,6 +254,16 @@ pub struct DspChain {
 }
 
 impl DspChain {
+    /// Separate profile for the XLX PCM bridge. The generic/HVC default is
+    /// intentionally left unchanged.
+    #[must_use]
+    pub const fn xlx_crossmode() -> Self {
+        Self {
+            agc: AdaptiveGain::xlx_crossmode(),
+            limiter: SoftLimiter::xlx_crossmode(),
+        }
+    }
+
     pub fn process(&mut self, frame: &mut PcmFrame) -> Level {
         self.agc.process(frame.samples_mut());
         self.limiter.process(frame.samples_mut());
@@ -299,6 +334,87 @@ mod tests {
             "gain={}",
             high_agc.current_gain()
         );
+    }
+
+    #[test]
+    fn xlx_crossmode_gain_is_conservative_and_stable() {
+        let mut nominal = AdaptiveGain::xlx_crossmode();
+        for _ in 0..100 {
+            let mut frame = [0.10_f32; 160];
+            nominal.process(&mut frame);
+        }
+        assert!((0.99..=1.01).contains(&nominal.current_gain()));
+
+        let mut low = AdaptiveGain::xlx_crossmode();
+        let mut first_low = [0.02_f32; 160];
+        low.process(&mut first_low);
+        assert!((1.009..=1.011).contains(&low.current_gain()));
+        for _ in 0..300 {
+            let mut frame = [0.02_f32; 160];
+            low.process(&mut frame);
+        }
+        assert!((1.49..=1.50).contains(&low.current_gain()));
+
+        let mut high = AdaptiveGain::xlx_crossmode();
+        let mut first_high = [0.50_f32; 160];
+        high.process(&mut first_high);
+        assert!((0.89..=0.91).contains(&high.current_gain()));
+        for _ in 0..50 {
+            let mut frame = [0.50_f32; 160];
+            high.process(&mut frame);
+        }
+        assert!((0.50..=0.51).contains(&high.current_gain()));
+    }
+
+    #[test]
+    fn xlx_crossmode_silence_does_not_breathe() {
+        let mut agc = AdaptiveGain::xlx_crossmode();
+        for _ in 0..120 {
+            let mut frame = [0.02_f32; 160];
+            agc.process(&mut frame);
+        }
+        let before = agc.current_gain();
+        for _ in 0..500 {
+            let mut silence = [0.0_f32; 160];
+            agc.process(&mut silence);
+            assert!(silence.iter().all(|sample| *sample == 0.0));
+        }
+        assert_eq!(agc.current_gain(), before);
+    }
+
+    #[test]
+    fn xlx_crossmode_limiter_is_transparent_below_high_knee() {
+        let original = [-0.94_f32, -0.5, 0.0, 0.5, 0.94];
+        let mut samples = original;
+        SoftLimiter::xlx_crossmode().process(&mut samples);
+        assert_eq!(samples, original);
+
+        let mut peaks = [-1.2_f32, -1.0, 1.0, 1.2];
+        SoftLimiter::xlx_crossmode().process(&mut peaks);
+        assert!(peaks.iter().all(|sample| sample.abs() <= 1.0));
+    }
+
+    #[test]
+    fn xlx_crossmode_chain_is_separate_from_default() {
+        let input = [0.02_f32; 160];
+
+        let mut generic_frame = PcmFrame::from_slice(8_000, 0, &input).expect("generic");
+        let mut generic = DspChain::default();
+        for _ in 0..100 {
+            generic.process(&mut generic_frame);
+            generic_frame = PcmFrame::from_slice(8_000, 0, &input).expect("generic frame");
+        }
+
+        let mut xlx_frame = PcmFrame::from_slice(8_000, 0, &input).expect("xlx");
+        let mut xlx = DspChain::xlx_crossmode();
+        for _ in 0..100 {
+            xlx.process(&mut xlx_frame);
+            xlx_frame = PcmFrame::from_slice(8_000, 0, &input).expect("xlx frame");
+        }
+
+        assert!(generic.agc.current_gain() > 3.8);
+        assert!(xlx.agc.current_gain() <= 1.5);
+        assert!(xlx.agc.current_gain() > 1.4);
     }
 
     #[test]
