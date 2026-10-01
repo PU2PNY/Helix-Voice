@@ -115,6 +115,9 @@ Avaliar e, quando aprovado por testes, adicionar:
 ### DSP-007 — Qualidade
 Uma alteração DSP não pode ser declarada melhor apenas por ser mais alta. Deve considerar nível, distorção, inteligibilidade, ruído, fadiga e latência.
 
+### DSP-008 — Perfil XLX conservador
+O PCM bridge XLX deve usar um perfil de nível separado do `DspChain::default()`, preservando o baseline HVC. O perfil XLX deve ser deliberadamente conservador para áudio já transcodificado: ganho limitado a no máximo +3,5 dB e -6 dB, aumento de ganho lento, atenuação mais rápida, limiar de silêncio mais alto e limiter praticamente transparente abaixo de picos altos. O algoritmo continua sendo o mesmo AdaptiveGain + SoftLimiter documentado; esta mudança não cria nova topologia DSP e não altera o status FTO existente.
+
 ## 6. Desempenho
 
 ### PERF-001 — Métricas obrigatórias
